@@ -1,0 +1,87 @@
+// This contract implements the ERC20 token standard, but with Zero Knowledge Proofs
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+interface IERC20 {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function allowance(
+        address owner,
+        address spender
+    ) external view returns (uint256);
+
+    function _transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+    // function _mint(address recipient, uint256 amount) external returns (bool);
+    // function _mint(address recipient, uint256 amount) public returns (bool);
+    function _burn(address recipient, uint256 amount) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
+}
+
+contract ZERC20 is IERC20 { 
+    uint256 private _totalSupply=100;
+
+    // Tracking user balances in a ZK way
+    secret mapping(address => uint256) private _balances;
+
+    // Tracking user allowances in a ZK way
+    secret mapping(address => mapping(address => uint256)) private _allowances;
+
+    // Name of the token
+    string public _name;
+
+    // Symbol of the token
+    string public _symbol;
+
+    // Number of decimals the token uses
+    uint8 public _decimals = 18;
+
+    constructor(string memory name_, string memory symbol_) {
+        _name = name_;
+        _symbol = symbol_;
+    }
+
+    function name() public view override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view override returns (string memory) {
+        return _symbol;
+    }
+
+    function decimals() public view override returns (uint8) {
+        return _decimals;
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
+    }
+
+    // TODO: Implement this in a ZK way
+    function balanceOf(address account) public view override returns (uint256) {
+        return _balances[account];
+    }
+}
