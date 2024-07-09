@@ -3,85 +3,44 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-interface IERC20 {
-    function name() external view returns (string memory);
-    function symbol() external view returns (string memory);
-    function decimals() external view returns (uint8);
 
-    function totalSupply() external view returns (uint256);
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function allowance(
-        address owner,
-        address spender
-    ) external view returns (uint256);
-
-    function _transfer(
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-    // function _mint(address recipient, uint256 amount) external returns (bool);
-    // function _mint(address recipient, uint256 amount) public returns (bool);
-    function _burn(address recipient, uint256 amount) external returns (bool);
-
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-}
-
-contract ZERC20 is IERC20 { 
+contract ZERC20MINI { 
     uint256 private _totalSupply=100;
 
     // Tracking user balances in a ZK way
     secret mapping(address => uint256) private _balances;
 
-    // Tracking user allowances in a ZK way
-    secret mapping(address => mapping(address => uint256)) private _allowances;
+    event Transfer(secret address indexed sender, secret address indexed recipient, secret uint256 amount);
 
-    // Name of the token
-    string public _name;
+    function mint(address recipient, uint256 amount) public returns (bool) {
+        require (amount > 0, "Amount must be greater than 0");
+        require (recipient != address(0), "Recipient must be a valid address");
+        require (_totalSupply + amount > _totalSupply, "Overflow error");
 
-    // Symbol of the token
-    string public _symbol;
+        _totalSupply += amount;
 
-    // Number of decimals the token uses
-    uint8 public _decimals = 18;
+        _balances[recipient] += amount;
 
-    constructor(string memory name_, string memory symbol_) {
-        _name = name_;
-        _symbol = symbol_;
+        emit Transfer(address(0), recipient, amount);
+        return true;
     }
 
-    function name() public view override returns (string memory) {
-        return _name;
+    function constructor() {
+        _balances[msg.sender] = _totalSupply;
     }
 
-    function symbol() public view override returns (string memory) {
-        return _symbol;
+    function balanceOf(secret address account) public view override returns (uint256) {
+        return known _balances[account];
     }
 
-    function decimals() public view override returns (uint8) {
-        return _decimals;
-    }
+    function transfer(secret address recipient, secret uint256 amount) public returns (bool) {
+        require(_balances[sender] >= amount, "Insufficient balance");
+        require(_allowances[sender][msg.sender] >= amount, "Insufficient allowance");
 
-    function totalSupply() public view override returns (uint256) {
-        return _totalSupply;
-    }
+        _balances[msg.sender] -= amount;
+        unknown _balances[recipient] += amount;
 
-    // TODO: Implement this in a ZK way
-    function balanceOf(address account) public view override returns (uint256) {
-        return _balances[account];
+        emit Transfer(sender, recipient, amount);
+        return true;
     }
 }
