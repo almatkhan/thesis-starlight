@@ -26,19 +26,51 @@ interface IERC20 {
 
 contract ZKSender {
     IERC20 public immutable token;
-
     uint public reserve;
+
+    secret private balances map[address]uint;
 
     constructor(address _token) {
         token = IERC20(_token);
     }
 
     // This function hides the tokens and makes them only accessible via ZKP
-    function vault() {}
+    function vault(uint _amountIn) {
+        // First, transfer the funds from the user to this contract (lock funds)
+        require(_amountIn > 0, "Amount must be greater than 0");
+        require(token.transferFrom(msg.sender, address(this), _amountIn), "Transfer failed");
 
-    // This function UNhides the tokens and makes them transparently accissable
-    function unvault() {}
+        // Then, update the balance of the user in the ZKP way
+        unknown balances[msg.sender] += _amountIn;
+        reserve += _amountIn;
+
+        // We could apply some fees here.
+        // Alternatively, they could be applied on withdrawal
+
+        // emit something? Emit a commitment change?
+    }
+
+    //  This function UNhides the tokens and makes them transparently accissable
+    //  For the simplicity this function supports only full withdrawals.
+    //  No partial withdrawals
+    function unvault() {
+        amount = known balacnes[msg.sender];
+
+        require(amount > 0, "You have no funds available");
+        require(reserve => amount, "Unsufficiant funds"); // This should never happen!
+        require(token.transferFrom(address(this), msg.sender, amount), "Transfer failed");
+
+        reserve -= amount;
+
+        // We could apply some fees here, if we wanted to 
+
+        // Emit something? A commitment change?
+    }
 
     // This function sends the funds within the ZKP
-    function sendTo() {}
+    function transfer(secret address recipient, secret uint amount){
+        require(amount>0, "Amount must be greater than 0")
+        unknown balances[msg.sender] -= amount;
+        unknown balances[recipient]+= amount;
+    }
 }

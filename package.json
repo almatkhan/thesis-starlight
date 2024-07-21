@@ -1,12 +1,11 @@
 {
   "dependencies": {
-    "@eyblockchain/starlight": "^1.5.15"
+    "@eyblockchain/starlight": "^1.5.17"
   },
   "name": "thesis-starlight",
   "version": "1.0.0",
   "description": "Testing out the EY Starlight",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
