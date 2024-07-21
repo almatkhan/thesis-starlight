@@ -1,44 +1,44 @@
-// This contract implements the ERC20 token standard, but with Zero Knowledge Proofs
+// // This contract implements the ERC20 token standard, but with Zero Knowledge Proofs
 
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.21;
+// // SPDX-License-Identifier: MIT
+// pragma solidity ^0.8.21;
 
 
-contract ZERC20MINI { 
-    uint256 private totalSupply=100;
+// contract ZERC20MINI { 
+//     uint256 private totalSupply=100;
 
-    // Tracking user balances in a ZK way
-    secret mapping(address => uint256) private balances;
+//     // Tracking user balances in a ZK way
+//     secret mapping(address => uint256) private balances;
 
-    event Transfer(secret address indexed sender, secret address indexed recipient, secret uint256 amount);
+//     event Transfer(secret address indexed sender, secret address indexed recipient, secret uint256 amount);
 
-    function mint( uint256 amount) public returns (bool) {
-        require (amount > 0, "Amount must be greater than 0");
-        require (recipient != address(0), "Recipient must be a valid address");
-        require (totalSupply + amount > totalSupply, "Overflow error");
+//     function mint( uint256 amount) public returns (bool) {
+//         require (amount > 0, "Amount must be greater than 0");
+//         require (recipient != address(0), "Recipient must be a valid address");
+//         require (totalSupply + amount > totalSupply, "Overflow error");
 
-        totalSupply += amount;
-        balances[msg.sender] += amount;
+//         totalSupply += amount;
+//         balances[msg.sender] += amount;
 
-        emit Transfer(address(0), msg.sender, amount);
-        return true;
-    }
+//         emit Transfer(address(0), msg.sender, amount);
+//         return true;
+//     }
 
-    function constructor() {
-        balances[msg.sender] = totalSupply;
-    }
+//     function constructor() {
+//         balances[msg.sender] = totalSupply;
+//     }
 
-    function balanceOf(secret address account) public view override returns (uint256) {
-        return known balances[account];
-    }
+//     function balanceOf(secret address account) public view override returns (uint256) {
+//         return known balances[account];
+//     }
 
-    function transfer(secret address recipient, secret uint256 amount) public returns (bool) {
-        require(known balances[sender] >= amount, "Insufficient balance");
+//     function transfer(secret address recipient, secret uint256 amount) public returns (bool) {
+//         require(known balances[sender] >= amount, "Insufficient balance");
 
-        known balances[msg.sender] -= amount;
-        unknown balances[recipient] += amount;
+//         known balances[msg.sender] -= amount;
+//         unknown balances[recipient] += amount;
 
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
-    }
-}
+//         emit Transfer(msg.sender, recipient, amount);
+//         return true;
+//     }
+// }
