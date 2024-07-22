@@ -28,7 +28,7 @@ contract ZKSender {
     IERC20 public immutable token;
     uint public reserve;
 
-    secret private balances map[address]uint;
+    secret mapping(address => uint) balances;
 
     constructor(address _token) {
         token = IERC20(_token);
