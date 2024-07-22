@@ -64,7 +64,7 @@ contract ZKSender {
         require(amount > 0, "You have no funds available");
         require(reserve >= amount, "Unsufficiant funds"); // This should never happen!
         require(
-            token.token.transfer(msg.sender, amount),
+            token.transferFrom(address(this), msg.sender, amount),
             "Transfer failed"
         );
 
