@@ -1,0 +1,272 @@
+// SPDX-License-Identifier: CC0
+
+pragma solidity ^0.8.0;
+contract SyntheticPpa {
+    address public immutable owner;
+    secret uint256 private strikePrice;
+    secret uint256 private bundlePrice;
+    secret uint256 private volumeShare;
+    secret uint256 private dailyInterestRate;
+    secret uint256 private expiryDateOfContract;
+    bool public isContractTerminated;
+
+    secret mapping(uint256 => Shortfall) private shortfalls;
+    secret uint256 private latestShortfallSequenceNumber;
+
+    secret mapping(uint256 => Shortfall) private surplus;
+    secret uint256 private latestSurplusSequenceNumber;
+
+    secret uint256 private sequenceNumberInterval;
+
+    struct Shortfall {
+        uint256 billNumber;
+        uint256 volume;
+        uint256 price;
+    }
+
+    secret mapping(uint256 => uint256) private generatorCharges;
+    secret mapping(uint256 => uint256) private offtakerCharges;
+    secret mapping(uint256 => uint256) private generatorInterest;
+    secret mapping(uint256 => uint256) private offtakerInterest;
+    secret mapping(uint256 => uint256) private negativePriceCharges;
+
+    secret uint256 private numberOfConsecutivePeriodsForShortfall;
+    secret uint256 private shortfallThreshold;
+    secret uint256 private shortfallChargeSum;
+    secret uint256 private shortfallIndex;
+    secret mapping(uint256 => uint256) private shortfallCharges;
+
+    secret uint256 private numberOfConsecutivePeriodsForSurplus;
+    secret uint256 private surplusThreshold;
+    secret uint256 private surplusChargeSum;
+    secret uint256 private surplusIndex;
+    secret mapping(uint256 => uint256) private surplusCharges;
+
+    modifier onlyOwner() {
+        require(
+            msg.sender == owner,
+            "Caller is unauthorised, it must be the owner"
+        );
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+
+    function setStrikePrice(secret uint256 strikePriceParam) public onlyOwner {
+        strikePrice = strikePriceParam;
+    }
+
+    function setBundlePrice(secret uint256 bundlePriceParam) public onlyOwner {
+        bundlePrice = bundlePriceParam;
+    }
+
+    function setShortfallThreshold(secret uint256 shortfallThresholdParam) public onlyOwner {
+        shortfallThreshold = shortfallThresholdParam;
+    }
+
+    function setShortfallPeriods(secret uint256 shortfallPeriods) public onlyOwner {
+        numberOfConsecutivePeriodsForShortfall = shortfallPeriods;
+    }
+
+    function setSurplusThreshold(secret uint256 surplusThresholdParam) public onlyOwner {
+        surplusThreshold = surplusThresholdParam;
+    }
+
+    function setSurplusPeriods(secret uint256 surplusPeriods) public onlyOwner {
+        numberOfConsecutivePeriodsForSurplus = surplusPeriods;
+    }
+
+    function setDailyInterestRate(secret uint256 dailyInterestRateParam) public onlyOwner {
+        dailyInterestRate = dailyInterestRateParam;
+    }
+
+    function setExpiryDateOfContract(secret uint256 expiryDateOfContractParam) public onlyOwner {
+        expiryDateOfContract = expiryDateOfContractParam;
+    }
+
+    function setVolumeShare(secret uint256 volumeShareParam) public onlyOwner {
+        volumeShare = volumeShareParam;
+    }
+
+    function setSequenceNumberInterval(secret uint256 sequenceNumberIntervalParam) public onlyOwner {
+        sequenceNumberInterval = sequenceNumberIntervalParam;
+    }
+
+    function initSequenceNumber() public onlyOwner {
+        latestShortfallSequenceNumber = 0;
+    }
+
+    function initSurplusSequenceNumber() public onlyOwner {
+        latestSurplusSequenceNumber = 0;
+    }
+
+
+    function setInitialContractParams(
+        secret uint256 strikePriceParam,
+        secret uint256 bundlePriceParam,
+        secret uint256 volumeShareParam,
+        secret uint256 numberOfConsecutivePeriodsForShortfallParam,
+        secret uint256 shortfallThresholdParam,
+        secret uint256 numberOfConsecutivePeriodsForSurplusParam,
+        secret uint256 surplusThresholdParam,
+        secret uint256 dailyInterestRateParam,
+        secret uint256 expiryDateOfContractParam,
+        secret uint256 sequenceNumberIntervalParam,
+        secret uint256 referenceDate
+    ) public onlyOwner {
+       require(referenceDate > expiryDateOfContract);
+
+       require(isContractTerminated == false);
+        volumeShare = volumeShareParam;
+        strikePrice = strikePriceParam;
+        bundlePrice = bundlePriceParam;
+        numberOfConsecutivePeriodsForShortfall = numberOfConsecutivePeriodsForShortfallParam;
+        shortfallThreshold = shortfallThresholdParam;
+        numberOfConsecutivePeriodsForSurplus = numberOfConsecutivePeriodsForSurplusParam;
+        surplusThreshold = surplusThresholdParam;
+        dailyInterestRate = dailyInterestRateParam;
+        expiryDateOfContract = expiryDateOfContractParam;
+        sequenceNumberInterval = sequenceNumberIntervalParam;
+        latestShortfallSequenceNumber = 0;
+        latestSurplusSequenceNumber = 0;
+    }
+
+
+    // function calculateCfd(
+    //     secret uint256 billNumber,
+    //     secret uint256 sequenceNumber,
+    //     secret uint256 totalGeneratedVolume,
+    //     secret uint256 expectedVolume,
+    //     secret uint256 averagePrice,
+    //     secret uint256 marginalLossFactor,
+    //     secret uint256 floatingAmount,
+    //     secret uint256 positiveAdjustment,
+    //     secret uint256 negativeAdjustment,
+    //     secret uint256[5] calldata outstandingGeneratorAmount,
+    //     secret uint256[5] calldata outstandingOfftakerAmount,
+    //     secret uint256[5] calldata generatorDelayDays,
+    //     secret uint256[5] calldata offtakerDelayDays,
+    //     secret uint256 referenceDate
+    // ) public onlyOwner
+    //   returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        
+    //     require(referenceDate < expiryDateOfContract);
+    //     require(isContractTerminated == false);
+
+    //     secret uint256 offtakerVolume = totalGeneratedVolume * volumeShare;
+    //     secret uint256 fixedAmount = offtakerVolume * bundlePrice * marginalLossFactor;
+    //     negativePriceCharges[billNumber] = expectedVolume * strikePrice - totalGeneratedVolume * strikePrice;
+    //     secret uint256 index = shortfallIndex + 1;
+    //     secret uint256 tempSurplusIndex = surplusIndex + 1; 
+
+    //     if (floatingAmount > fixedAmount) {
+    //         generatorCharges[billNumber] = floatingAmount - fixedAmount + positiveAdjustment - negativeAdjustment;
+    //     } else {
+    //         offtakerCharges[billNumber] = fixedAmount - floatingAmount + positiveAdjustment - negativeAdjustment;
+    //     }
+
+    //     secret bool shortfallSequence = false;
+    //     if(sequenceNumber == latestShortfallSequenceNumber + sequenceNumberInterval ||
+    //         latestShortfallSequenceNumber == 0 ||
+    //         sequenceNumber == 0
+    //     ) {
+    //         shortfallSequence = true;
+    //     }
+
+    //     secret bool surplusSequence = false;
+    //     if(sequenceNumber == latestSurplusSequenceNumber + sequenceNumberInterval ||
+    //         latestSurplusSequenceNumber == 0 ||
+    //         sequenceNumber == 0
+    //     ) {
+    //         surplusSequence = true;
+    //     }
+        
+    //     secret uint256 priceDifference = 0;
+    //     if(averagePrice > strikePrice) {
+    //         priceDifference = averagePrice - strikePrice;
+    //     } else {
+    //         priceDifference = strikePrice - averagePrice;
+    //     }
+
+    //     // Shortfall and suplus difference
+    //     secret uint256 volumeDifference = 0;
+    //     if(expectedVolume > offtakerVolume) {   
+    //         volumeDifference = expectedVolume - totalGeneratedVolume;
+    //     } else {
+    //         volumeDifference = totalGeneratedVolume - expectedVolume;
+    //     }
+
+
+    //     // Shortfall calculation
+    //     if (shortfallSequence && expectedVolume > offtakerVolume && volumeDifference >= shortfallThreshold) {
+    //         shortfalls[index].billNumber = billNumber;
+    //         shortfalls[index].price = averagePrice;
+    //         shortfalls[index].volume = shortfallThreshold - offtakerVolume; 
+    //         shortfallChargeSum += shortfalls[index].volume * priceDifference;
+    //         shortfallIndex += 1;
+    //         latestShortfallSequenceNumber = sequenceNumber;
+    //     } 
+
+    //     if (shortfallSequence && expectedVolume < offtakerVolume || volumeDifference <= shortfallThreshold) {
+    //         shortfallChargeSum = 0;
+    //         shortfallIndex = 0;
+    //         latestShortfallSequenceNumber = 0;
+    //     }
+
+    //     if (shortfallIndex >= numberOfConsecutivePeriodsForShortfall) {
+    //         shortfallCharges[billNumber] = shortfallChargeSum;
+    //         shortfallChargeSum = 0;
+    //         shortfallIndex = 0;
+    //         latestShortfallSequenceNumber = 0;
+    //     }
+
+    //     // Surplus calculation
+    //     if (surplusSequence && expectedVolume < offtakerVolume && volumeDifference >= surplusThreshold) {
+    //         surplus[tempSurplusIndex].billNumber = billNumber;
+    //         surplus[tempSurplusIndex].price = averagePrice;
+    //         surplus[tempSurplusIndex].volume = surplusThreshold - offtakerVolume; 
+    //         surplusChargeSum += surplus[tempSurplusIndex].volume * priceDifference;
+    //         surplusIndex += 1;
+    //         latestSurplusSequenceNumber = sequenceNumber;
+    //     } 
+
+    //     if (surplusSequence && expectedVolume > offtakerVolume || volumeDifference <= surplusThreshold) {
+    //         surplusChargeSum = 0;
+    //         surplusIndex = 0;
+    //         latestSurplusSequenceNumber = 0;
+    //     }
+
+    //     if (surplusIndex >= numberOfConsecutivePeriodsForSurplus) {
+    //         surplusCharges[billNumber] = surplusChargeSum;
+    //         surplusChargeSum = 0;
+    //         surplusIndex = 0;
+    //         latestSurplusSequenceNumber = 0;
+    //     }
+
+    //     for (uint256 i = 0; i < 5; i++) {
+    //         if (outstandingGeneratorAmount[i] > 0) {
+    //             generatorInterest[billNumber] += outstandingGeneratorAmount[i] * generatorDelayDays[i] * dailyInterestRate;
+    //         } if (outstandingOfftakerAmount[i] > 0) {
+    //             offtakerInterest[billNumber] += outstandingOfftakerAmount[i] * offtakerDelayDays[i] * dailyInterestRate;
+    //         }
+    //     }
+
+    //     return (
+    //         generatorCharges[billNumber],
+    //         offtakerCharges[billNumber],
+    //         generatorInterest[billNumber],
+    //         offtakerInterest[billNumber],
+    //         shortfallCharges[billNumber],
+    //         surplusCharges[billNumber],
+    //         negativePriceCharges[billNumber]
+    //     );
+    // }
+
+    
+    // function terminateContract()  public onlyOwner {
+    //     isContractTerminated = true;
+    // }
+}

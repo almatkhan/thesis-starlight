@@ -1,0 +1,132 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field sequenceNumberIntervalParam,\
+	private field sequenceNumberInterval_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field sequenceNumberInterval_oldCommitment_nullifier,\
+	private field[32] sequenceNumberInterval_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] sequenceNumberInterval_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field sequenceNumberInterval_oldCommitment_value,\
+	private field sequenceNumberInterval_oldCommitment_salt,\
+	private bool sequenceNumberInterval_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field sequenceNumberInterval_oldCommitment_membershipWitness_index,\
+	private field[32] sequenceNumberInterval_oldCommitment_membershipWitness_siblingPath,\
+	private field sequenceNumberInterval_newCommitment_owner_publicKey,\
+	private field sequenceNumberInterval_newCommitment_salt,\
+	public field sequenceNumberInterval_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field sequenceNumberInterval_stateVarId_field = 31
+
+
+        field sequenceNumberInterval = sequenceNumberInterval_oldCommitment_value
+
+sequenceNumberInterval = sequenceNumberIntervalParam
+
+
+        // sequenceNumberInterval_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] sequenceNumberInterval_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(sequenceNumberInterval_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool sequenceNumberInterval_oldCommitment_owner_publicKey_sign = edwardsCompress(sequenceNumberInterval_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] sequenceNumberInterval_oldCommitment_yBits = field_to_bool_256(sequenceNumberInterval_oldCommitment_owner_publicKey_point[1])[2..256]
+        sequenceNumberInterval_oldCommitment_yBits[0] = sequenceNumberInterval_oldCommitment_owner_publicKey_sign
+
+        field sequenceNumberInterval_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...sequenceNumberInterval_oldCommitment_yBits])
+
+
+        // Nullify sequenceNumberInterval:
+
+        field sequenceNumberInterval_oldCommitment_nullifier_check_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_oldCommitment_owner_secretKey,\
+          sequenceNumberInterval_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(sequenceNumberInterval_oldCommitment_nullifier)[8..256] == field_to_bool_256(sequenceNumberInterval_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // sequenceNumberInterval_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            sequenceNumberInterval_nullifier_nonmembershipWitness_siblingPath,\
+            sequenceNumberInterval_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          sequenceNumberInterval_nullifier_nonmembershipWitness_newsiblingPath,\
+          sequenceNumberInterval_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'sequenceNumberInterval' for commitment
+
+          field sequenceNumberInterval_oldCommitment_value_field = sequenceNumberInterval_oldCommitment_value
+          
+        // sequenceNumberInterval_oldCommitment_commitment: preimage check
+
+
+        field sequenceNumberInterval_oldCommitment_commitment_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_oldCommitment_value_field,\
+          sequenceNumberInterval_oldCommitment_owner_publicKey,\
+          sequenceNumberInterval_oldCommitment_salt        ])
+
+
+        // sequenceNumberInterval_oldCommitment_commitment: existence check
+
+
+        field sequenceNumberInterval_commitmentRoot_check = checkRoot(\
+          sequenceNumberInterval_oldCommitment_membershipWitness_siblingPath,\
+          sequenceNumberInterval_oldCommitment_commitment_field,\
+          sequenceNumberInterval_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        sequenceNumberInterval_commitmentRoot_check = if sequenceNumberInterval_oldCommitment_isDummy == true then commitmentRoot else sequenceNumberInterval_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(sequenceNumberInterval_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'sequenceNumberInterval' for commitment
+
+        field sequenceNumberInterval_newCommitment_value_field = sequenceNumberInterval
+
+        // sequenceNumberInterval_newCommitment_commitment - preimage check
+
+        field sequenceNumberInterval_newCommitment_commitment_check_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_newCommitment_value_field,\
+          sequenceNumberInterval_newCommitment_owner_publicKey,\
+          sequenceNumberInterval_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(sequenceNumberInterval_newCommitment_commitment)[8..256] == field_to_bool_256(sequenceNumberInterval_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true

@@ -1,0 +1,1399 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field strikePriceParam,\
+	private field bundlePriceParam,\
+	private field volumeShareParam,\
+	private field numberOfConsecutivePeriodsForShortfallParam,\
+	private field shortfallThresholdParam,\
+	private field numberOfConsecutivePeriodsForSurplusParam,\
+	private field surplusThresholdParam,\
+	private field dailyInterestRateParam,\
+	private field expiryDateOfContractParam,\
+	private field sequenceNumberIntervalParam,\
+	private field referenceDate,\
+	private field strikePrice_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field strikePrice_oldCommitment_nullifier,\
+	private field[32] strikePrice_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] strikePrice_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field strikePrice_oldCommitment_value,\
+	private field strikePrice_oldCommitment_salt,\
+	private bool strikePrice_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field strikePrice_oldCommitment_membershipWitness_index,\
+	private field[32] strikePrice_oldCommitment_membershipWitness_siblingPath,\
+	private field strikePrice_newCommitment_owner_publicKey,\
+	private field strikePrice_newCommitment_salt,\
+	public field strikePrice_newCommitment_commitment,\
+	private field bundlePrice_oldCommitment_owner_secretKey,\
+	public field bundlePrice_oldCommitment_nullifier,\
+	private field[32] bundlePrice_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] bundlePrice_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field bundlePrice_oldCommitment_value,\
+	private field bundlePrice_oldCommitment_salt,\
+	private bool bundlePrice_oldCommitment_isDummy,\
+	private field bundlePrice_oldCommitment_membershipWitness_index,\
+	private field[32] bundlePrice_oldCommitment_membershipWitness_siblingPath,\
+	private field bundlePrice_newCommitment_owner_publicKey,\
+	private field bundlePrice_newCommitment_salt,\
+	public field bundlePrice_newCommitment_commitment,\
+	private field volumeShare_oldCommitment_owner_secretKey,\
+	public field volumeShare_oldCommitment_nullifier,\
+	private field[32] volumeShare_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] volumeShare_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field volumeShare_oldCommitment_value,\
+	private field volumeShare_oldCommitment_salt,\
+	private bool volumeShare_oldCommitment_isDummy,\
+	private field volumeShare_oldCommitment_membershipWitness_index,\
+	private field[32] volumeShare_oldCommitment_membershipWitness_siblingPath,\
+	private field volumeShare_newCommitment_owner_publicKey,\
+	private field volumeShare_newCommitment_salt,\
+	public field volumeShare_newCommitment_commitment,\
+	private field dailyInterestRate_oldCommitment_owner_secretKey,\
+	public field dailyInterestRate_oldCommitment_nullifier,\
+	private field[32] dailyInterestRate_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] dailyInterestRate_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field dailyInterestRate_oldCommitment_value,\
+	private field dailyInterestRate_oldCommitment_salt,\
+	private bool dailyInterestRate_oldCommitment_isDummy,\
+	private field dailyInterestRate_oldCommitment_membershipWitness_index,\
+	private field[32] dailyInterestRate_oldCommitment_membershipWitness_siblingPath,\
+	private field dailyInterestRate_newCommitment_owner_publicKey,\
+	private field dailyInterestRate_newCommitment_salt,\
+	public field dailyInterestRate_newCommitment_commitment,\
+	private field expiryDateOfContract_oldCommitment_owner_secretKey,\
+	public field expiryDateOfContract_oldCommitment_nullifier,\
+	private field[32] expiryDateOfContract_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] expiryDateOfContract_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field expiryDateOfContract_oldCommitment_value,\
+	private field expiryDateOfContract_oldCommitment_salt,\
+	private bool expiryDateOfContract_oldCommitment_isDummy,\
+	private field expiryDateOfContract_oldCommitment_membershipWitness_index,\
+	private field[32] expiryDateOfContract_oldCommitment_membershipWitness_siblingPath,\
+	private field expiryDateOfContract_newCommitment_owner_publicKey,\
+	private field expiryDateOfContract_newCommitment_salt,\
+	public field expiryDateOfContract_newCommitment_commitment,\
+	private field latestShortfallSequenceNumber_oldCommitment_owner_secretKey,\
+	public field latestShortfallSequenceNumber_oldCommitment_nullifier,\
+	private field[32] latestShortfallSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] latestShortfallSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field latestShortfallSequenceNumber_oldCommitment_value,\
+	private field latestShortfallSequenceNumber_oldCommitment_salt,\
+	private bool latestShortfallSequenceNumber_oldCommitment_isDummy,\
+	private field latestShortfallSequenceNumber_oldCommitment_membershipWitness_index,\
+	private field[32] latestShortfallSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+	private field latestShortfallSequenceNumber_newCommitment_owner_publicKey,\
+	private field latestShortfallSequenceNumber_newCommitment_salt,\
+	public field latestShortfallSequenceNumber_newCommitment_commitment,\
+	private field latestSurplusSequenceNumber_oldCommitment_owner_secretKey,\
+	public field latestSurplusSequenceNumber_oldCommitment_nullifier,\
+	private field[32] latestSurplusSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] latestSurplusSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field latestSurplusSequenceNumber_oldCommitment_value,\
+	private field latestSurplusSequenceNumber_oldCommitment_salt,\
+	private bool latestSurplusSequenceNumber_oldCommitment_isDummy,\
+	private field latestSurplusSequenceNumber_oldCommitment_membershipWitness_index,\
+	private field[32] latestSurplusSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+	private field latestSurplusSequenceNumber_newCommitment_owner_publicKey,\
+	private field latestSurplusSequenceNumber_newCommitment_salt,\
+	public field latestSurplusSequenceNumber_newCommitment_commitment,\
+	private field sequenceNumberInterval_oldCommitment_owner_secretKey,\
+	public field sequenceNumberInterval_oldCommitment_nullifier,\
+	private field[32] sequenceNumberInterval_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] sequenceNumberInterval_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field sequenceNumberInterval_oldCommitment_value,\
+	private field sequenceNumberInterval_oldCommitment_salt,\
+	private bool sequenceNumberInterval_oldCommitment_isDummy,\
+	private field sequenceNumberInterval_oldCommitment_membershipWitness_index,\
+	private field[32] sequenceNumberInterval_oldCommitment_membershipWitness_siblingPath,\
+	private field sequenceNumberInterval_newCommitment_owner_publicKey,\
+	private field sequenceNumberInterval_newCommitment_salt,\
+	public field sequenceNumberInterval_newCommitment_commitment,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey,\
+	public field numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field numberOfConsecutivePeriodsForShortfall_oldCommitment_value,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_salt,\
+	private bool numberOfConsecutivePeriodsForShortfall_oldCommitment_isDummy,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_index,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_siblingPath,\
+	private field numberOfConsecutivePeriodsForShortfall_newCommitment_owner_publicKey,\
+	private field numberOfConsecutivePeriodsForShortfall_newCommitment_salt,\
+	public field numberOfConsecutivePeriodsForShortfall_newCommitment_commitment,\
+	private field shortfallThreshold_oldCommitment_owner_secretKey,\
+	public field shortfallThreshold_oldCommitment_nullifier,\
+	private field[32] shortfallThreshold_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] shortfallThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field shortfallThreshold_oldCommitment_value,\
+	private field shortfallThreshold_oldCommitment_salt,\
+	private bool shortfallThreshold_oldCommitment_isDummy,\
+	private field shortfallThreshold_oldCommitment_membershipWitness_index,\
+	private field[32] shortfallThreshold_oldCommitment_membershipWitness_siblingPath,\
+	private field shortfallThreshold_newCommitment_owner_publicKey,\
+	private field shortfallThreshold_newCommitment_salt,\
+	public field shortfallThreshold_newCommitment_commitment,\
+	private field numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_secretKey,\
+	public field numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier,\
+	private field[32] numberOfConsecutivePeriodsForSurplus_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] numberOfConsecutivePeriodsForSurplus_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field numberOfConsecutivePeriodsForSurplus_oldCommitment_value,\
+	private field numberOfConsecutivePeriodsForSurplus_oldCommitment_salt,\
+	private bool numberOfConsecutivePeriodsForSurplus_oldCommitment_isDummy,\
+	private field numberOfConsecutivePeriodsForSurplus_oldCommitment_membershipWitness_index,\
+	private field[32] numberOfConsecutivePeriodsForSurplus_oldCommitment_membershipWitness_siblingPath,\
+	private field numberOfConsecutivePeriodsForSurplus_newCommitment_owner_publicKey,\
+	private field numberOfConsecutivePeriodsForSurplus_newCommitment_salt,\
+	public field numberOfConsecutivePeriodsForSurplus_newCommitment_commitment,\
+	private field surplusThreshold_oldCommitment_owner_secretKey,\
+	public field surplusThreshold_oldCommitment_nullifier,\
+	private field[32] surplusThreshold_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] surplusThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field surplusThreshold_oldCommitment_value,\
+	private field surplusThreshold_oldCommitment_salt,\
+	private bool surplusThreshold_oldCommitment_isDummy,\
+	private field surplusThreshold_oldCommitment_membershipWitness_index,\
+	private field[32] surplusThreshold_oldCommitment_membershipWitness_siblingPath,\
+	private field surplusThreshold_newCommitment_owner_publicKey,\
+	private field surplusThreshold_newCommitment_salt,\
+	public field surplusThreshold_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field strikePrice_stateVarId_field = 5
+
+
+        field strikePrice = strikePrice_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field bundlePrice_stateVarId_field = 7
+
+
+        field bundlePrice = bundlePrice_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field volumeShare_stateVarId_field = 9
+
+
+        field volumeShare = volumeShare_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field dailyInterestRate_stateVarId_field = 11
+
+
+        field dailyInterestRate = dailyInterestRate_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field expiryDateOfContract_stateVarId_field = 13
+
+
+        field expiryDateOfContract = expiryDateOfContract_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field latestShortfallSequenceNumber_stateVarId_field = 22
+
+
+        field latestShortfallSequenceNumber = latestShortfallSequenceNumber_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field latestSurplusSequenceNumber_stateVarId_field = 29
+
+
+        field latestSurplusSequenceNumber = latestSurplusSequenceNumber_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field sequenceNumberInterval_stateVarId_field = 31
+
+
+        field sequenceNumberInterval = sequenceNumberInterval_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field numberOfConsecutivePeriodsForShortfall_stateVarId_field = 60
+
+
+        field numberOfConsecutivePeriodsForShortfall = numberOfConsecutivePeriodsForShortfall_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field shortfallThreshold_stateVarId_field = 62
+
+
+        field shortfallThreshold = shortfallThreshold_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field numberOfConsecutivePeriodsForSurplus_stateVarId_field = 72
+
+
+        field numberOfConsecutivePeriodsForSurplus = numberOfConsecutivePeriodsForSurplus_oldCommitment_value
+
+
+        // We need to hard-code each stateVarId into the circuit:
+        field surplusThreshold_stateVarId_field = 74
+
+
+        field surplusThreshold = surplusThreshold_oldCommitment_value
+
+
+        assert(referenceDate > expiryDateOfContract)
+
+volumeShare = volumeShareParam
+
+strikePrice = strikePriceParam
+
+bundlePrice = bundlePriceParam
+
+numberOfConsecutivePeriodsForShortfall = numberOfConsecutivePeriodsForShortfallParam
+
+shortfallThreshold = shortfallThresholdParam
+
+numberOfConsecutivePeriodsForSurplus = numberOfConsecutivePeriodsForSurplusParam
+
+surplusThreshold = surplusThresholdParam
+
+dailyInterestRate = dailyInterestRateParam
+
+expiryDateOfContract = expiryDateOfContractParam
+
+sequenceNumberInterval = sequenceNumberIntervalParam
+
+latestShortfallSequenceNumber = 0
+
+latestSurplusSequenceNumber = 0
+
+
+        // strikePrice_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] strikePrice_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(strikePrice_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool strikePrice_oldCommitment_owner_publicKey_sign = edwardsCompress(strikePrice_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] strikePrice_oldCommitment_yBits = field_to_bool_256(strikePrice_oldCommitment_owner_publicKey_point[1])[2..256]
+        strikePrice_oldCommitment_yBits[0] = strikePrice_oldCommitment_owner_publicKey_sign
+
+        field strikePrice_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...strikePrice_oldCommitment_yBits])
+
+
+        // Nullify strikePrice:
+
+        field strikePrice_oldCommitment_nullifier_check_field = poseidon([\
+          strikePrice_stateVarId_field,\
+          strikePrice_oldCommitment_owner_secretKey,\
+          strikePrice_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(strikePrice_oldCommitment_nullifier)[8..256] == field_to_bool_256(strikePrice_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // strikePrice_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            strikePrice_nullifier_nonmembershipWitness_siblingPath,\
+            strikePrice_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          strikePrice_nullifier_nonmembershipWitness_newsiblingPath,\
+          strikePrice_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'strikePrice' for commitment
+
+          field strikePrice_oldCommitment_value_field = strikePrice_oldCommitment_value
+          
+        // strikePrice_oldCommitment_commitment: preimage check
+
+
+        field strikePrice_oldCommitment_commitment_field = poseidon([\
+          strikePrice_stateVarId_field,\
+          strikePrice_oldCommitment_value_field,\
+          strikePrice_oldCommitment_owner_publicKey,\
+          strikePrice_oldCommitment_salt        ])
+
+
+        // strikePrice_oldCommitment_commitment: existence check
+
+
+        field strikePrice_commitmentRoot_check = checkRoot(\
+          strikePrice_oldCommitment_membershipWitness_siblingPath,\
+          strikePrice_oldCommitment_commitment_field,\
+          strikePrice_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        strikePrice_commitmentRoot_check = if strikePrice_oldCommitment_isDummy == true then commitmentRoot else strikePrice_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(strikePrice_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'strikePrice' for commitment
+
+        field strikePrice_newCommitment_value_field = strikePrice
+
+        // strikePrice_newCommitment_commitment - preimage check
+
+        field strikePrice_newCommitment_commitment_check_field = poseidon([\
+          strikePrice_stateVarId_field,\
+          strikePrice_newCommitment_value_field,\
+          strikePrice_newCommitment_owner_publicKey,\
+          strikePrice_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(strikePrice_newCommitment_commitment)[8..256] == field_to_bool_256(strikePrice_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // bundlePrice_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] bundlePrice_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(bundlePrice_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool bundlePrice_oldCommitment_owner_publicKey_sign = edwardsCompress(bundlePrice_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] bundlePrice_oldCommitment_yBits = field_to_bool_256(bundlePrice_oldCommitment_owner_publicKey_point[1])[2..256]
+        bundlePrice_oldCommitment_yBits[0] = bundlePrice_oldCommitment_owner_publicKey_sign
+
+        field bundlePrice_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...bundlePrice_oldCommitment_yBits])
+
+
+        // Nullify bundlePrice:
+
+        field bundlePrice_oldCommitment_nullifier_check_field = poseidon([\
+          bundlePrice_stateVarId_field,\
+          bundlePrice_oldCommitment_owner_secretKey,\
+          bundlePrice_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(bundlePrice_oldCommitment_nullifier)[8..256] == field_to_bool_256(bundlePrice_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // bundlePrice_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            bundlePrice_nullifier_nonmembershipWitness_siblingPath,\
+            bundlePrice_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          bundlePrice_nullifier_nonmembershipWitness_newsiblingPath,\
+          bundlePrice_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'bundlePrice' for commitment
+
+          field bundlePrice_oldCommitment_value_field = bundlePrice_oldCommitment_value
+          
+        // bundlePrice_oldCommitment_commitment: preimage check
+
+
+        field bundlePrice_oldCommitment_commitment_field = poseidon([\
+          bundlePrice_stateVarId_field,\
+          bundlePrice_oldCommitment_value_field,\
+          bundlePrice_oldCommitment_owner_publicKey,\
+          bundlePrice_oldCommitment_salt        ])
+
+
+        // bundlePrice_oldCommitment_commitment: existence check
+
+
+        field bundlePrice_commitmentRoot_check = checkRoot(\
+          bundlePrice_oldCommitment_membershipWitness_siblingPath,\
+          bundlePrice_oldCommitment_commitment_field,\
+          bundlePrice_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        bundlePrice_commitmentRoot_check = if bundlePrice_oldCommitment_isDummy == true then commitmentRoot else bundlePrice_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(bundlePrice_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'bundlePrice' for commitment
+
+        field bundlePrice_newCommitment_value_field = bundlePrice
+
+        // bundlePrice_newCommitment_commitment - preimage check
+
+        field bundlePrice_newCommitment_commitment_check_field = poseidon([\
+          bundlePrice_stateVarId_field,\
+          bundlePrice_newCommitment_value_field,\
+          bundlePrice_newCommitment_owner_publicKey,\
+          bundlePrice_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(bundlePrice_newCommitment_commitment)[8..256] == field_to_bool_256(bundlePrice_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // volumeShare_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] volumeShare_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(volumeShare_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool volumeShare_oldCommitment_owner_publicKey_sign = edwardsCompress(volumeShare_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] volumeShare_oldCommitment_yBits = field_to_bool_256(volumeShare_oldCommitment_owner_publicKey_point[1])[2..256]
+        volumeShare_oldCommitment_yBits[0] = volumeShare_oldCommitment_owner_publicKey_sign
+
+        field volumeShare_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...volumeShare_oldCommitment_yBits])
+
+
+        // Nullify volumeShare:
+
+        field volumeShare_oldCommitment_nullifier_check_field = poseidon([\
+          volumeShare_stateVarId_field,\
+          volumeShare_oldCommitment_owner_secretKey,\
+          volumeShare_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(volumeShare_oldCommitment_nullifier)[8..256] == field_to_bool_256(volumeShare_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // volumeShare_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            volumeShare_nullifier_nonmembershipWitness_siblingPath,\
+            volumeShare_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          volumeShare_nullifier_nonmembershipWitness_newsiblingPath,\
+          volumeShare_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'volumeShare' for commitment
+
+          field volumeShare_oldCommitment_value_field = volumeShare_oldCommitment_value
+          
+        // volumeShare_oldCommitment_commitment: preimage check
+
+
+        field volumeShare_oldCommitment_commitment_field = poseidon([\
+          volumeShare_stateVarId_field,\
+          volumeShare_oldCommitment_value_field,\
+          volumeShare_oldCommitment_owner_publicKey,\
+          volumeShare_oldCommitment_salt        ])
+
+
+        // volumeShare_oldCommitment_commitment: existence check
+
+
+        field volumeShare_commitmentRoot_check = checkRoot(\
+          volumeShare_oldCommitment_membershipWitness_siblingPath,\
+          volumeShare_oldCommitment_commitment_field,\
+          volumeShare_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        volumeShare_commitmentRoot_check = if volumeShare_oldCommitment_isDummy == true then commitmentRoot else volumeShare_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(volumeShare_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'volumeShare' for commitment
+
+        field volumeShare_newCommitment_value_field = volumeShare
+
+        // volumeShare_newCommitment_commitment - preimage check
+
+        field volumeShare_newCommitment_commitment_check_field = poseidon([\
+          volumeShare_stateVarId_field,\
+          volumeShare_newCommitment_value_field,\
+          volumeShare_newCommitment_owner_publicKey,\
+          volumeShare_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(volumeShare_newCommitment_commitment)[8..256] == field_to_bool_256(volumeShare_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // dailyInterestRate_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] dailyInterestRate_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(dailyInterestRate_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool dailyInterestRate_oldCommitment_owner_publicKey_sign = edwardsCompress(dailyInterestRate_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] dailyInterestRate_oldCommitment_yBits = field_to_bool_256(dailyInterestRate_oldCommitment_owner_publicKey_point[1])[2..256]
+        dailyInterestRate_oldCommitment_yBits[0] = dailyInterestRate_oldCommitment_owner_publicKey_sign
+
+        field dailyInterestRate_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...dailyInterestRate_oldCommitment_yBits])
+
+
+        // Nullify dailyInterestRate:
+
+        field dailyInterestRate_oldCommitment_nullifier_check_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_oldCommitment_owner_secretKey,\
+          dailyInterestRate_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(dailyInterestRate_oldCommitment_nullifier)[8..256] == field_to_bool_256(dailyInterestRate_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // dailyInterestRate_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            dailyInterestRate_nullifier_nonmembershipWitness_siblingPath,\
+            dailyInterestRate_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          dailyInterestRate_nullifier_nonmembershipWitness_newsiblingPath,\
+          dailyInterestRate_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'dailyInterestRate' for commitment
+
+          field dailyInterestRate_oldCommitment_value_field = dailyInterestRate_oldCommitment_value
+          
+        // dailyInterestRate_oldCommitment_commitment: preimage check
+
+
+        field dailyInterestRate_oldCommitment_commitment_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_oldCommitment_value_field,\
+          dailyInterestRate_oldCommitment_owner_publicKey,\
+          dailyInterestRate_oldCommitment_salt        ])
+
+
+        // dailyInterestRate_oldCommitment_commitment: existence check
+
+
+        field dailyInterestRate_commitmentRoot_check = checkRoot(\
+          dailyInterestRate_oldCommitment_membershipWitness_siblingPath,\
+          dailyInterestRate_oldCommitment_commitment_field,\
+          dailyInterestRate_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        dailyInterestRate_commitmentRoot_check = if dailyInterestRate_oldCommitment_isDummy == true then commitmentRoot else dailyInterestRate_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(dailyInterestRate_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'dailyInterestRate' for commitment
+
+        field dailyInterestRate_newCommitment_value_field = dailyInterestRate
+
+        // dailyInterestRate_newCommitment_commitment - preimage check
+
+        field dailyInterestRate_newCommitment_commitment_check_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_newCommitment_value_field,\
+          dailyInterestRate_newCommitment_owner_publicKey,\
+          dailyInterestRate_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(dailyInterestRate_newCommitment_commitment)[8..256] == field_to_bool_256(dailyInterestRate_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // expiryDateOfContract_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] expiryDateOfContract_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(expiryDateOfContract_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool expiryDateOfContract_oldCommitment_owner_publicKey_sign = edwardsCompress(expiryDateOfContract_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] expiryDateOfContract_oldCommitment_yBits = field_to_bool_256(expiryDateOfContract_oldCommitment_owner_publicKey_point[1])[2..256]
+        expiryDateOfContract_oldCommitment_yBits[0] = expiryDateOfContract_oldCommitment_owner_publicKey_sign
+
+        field expiryDateOfContract_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...expiryDateOfContract_oldCommitment_yBits])
+
+
+        // Nullify expiryDateOfContract:
+
+        field expiryDateOfContract_oldCommitment_nullifier_check_field = poseidon([\
+          expiryDateOfContract_stateVarId_field,\
+          expiryDateOfContract_oldCommitment_owner_secretKey,\
+          expiryDateOfContract_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(expiryDateOfContract_oldCommitment_nullifier)[8..256] == field_to_bool_256(expiryDateOfContract_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // expiryDateOfContract_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            expiryDateOfContract_nullifier_nonmembershipWitness_siblingPath,\
+            expiryDateOfContract_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          expiryDateOfContract_nullifier_nonmembershipWitness_newsiblingPath,\
+          expiryDateOfContract_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'expiryDateOfContract' for commitment
+
+          field expiryDateOfContract_oldCommitment_value_field = expiryDateOfContract_oldCommitment_value
+          
+        // expiryDateOfContract_oldCommitment_commitment: preimage check
+
+
+        field expiryDateOfContract_oldCommitment_commitment_field = poseidon([\
+          expiryDateOfContract_stateVarId_field,\
+          expiryDateOfContract_oldCommitment_value_field,\
+          expiryDateOfContract_oldCommitment_owner_publicKey,\
+          expiryDateOfContract_oldCommitment_salt        ])
+
+
+        // expiryDateOfContract_oldCommitment_commitment: existence check
+
+
+        field expiryDateOfContract_commitmentRoot_check = checkRoot(\
+          expiryDateOfContract_oldCommitment_membershipWitness_siblingPath,\
+          expiryDateOfContract_oldCommitment_commitment_field,\
+          expiryDateOfContract_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        expiryDateOfContract_commitmentRoot_check = if expiryDateOfContract_oldCommitment_isDummy == true then commitmentRoot else expiryDateOfContract_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(expiryDateOfContract_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'expiryDateOfContract' for commitment
+
+        field expiryDateOfContract_newCommitment_value_field = expiryDateOfContract
+
+        // expiryDateOfContract_newCommitment_commitment - preimage check
+
+        field expiryDateOfContract_newCommitment_commitment_check_field = poseidon([\
+          expiryDateOfContract_stateVarId_field,\
+          expiryDateOfContract_newCommitment_value_field,\
+          expiryDateOfContract_newCommitment_owner_publicKey,\
+          expiryDateOfContract_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(expiryDateOfContract_newCommitment_commitment)[8..256] == field_to_bool_256(expiryDateOfContract_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // latestShortfallSequenceNumber_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] latestShortfallSequenceNumber_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(latestShortfallSequenceNumber_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool latestShortfallSequenceNumber_oldCommitment_owner_publicKey_sign = edwardsCompress(latestShortfallSequenceNumber_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] latestShortfallSequenceNumber_oldCommitment_yBits = field_to_bool_256(latestShortfallSequenceNumber_oldCommitment_owner_publicKey_point[1])[2..256]
+        latestShortfallSequenceNumber_oldCommitment_yBits[0] = latestShortfallSequenceNumber_oldCommitment_owner_publicKey_sign
+
+        field latestShortfallSequenceNumber_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...latestShortfallSequenceNumber_oldCommitment_yBits])
+
+
+        // Nullify latestShortfallSequenceNumber:
+
+        field latestShortfallSequenceNumber_oldCommitment_nullifier_check_field = poseidon([\
+          latestShortfallSequenceNumber_stateVarId_field,\
+          latestShortfallSequenceNumber_oldCommitment_owner_secretKey,\
+          latestShortfallSequenceNumber_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(latestShortfallSequenceNumber_oldCommitment_nullifier)[8..256] == field_to_bool_256(latestShortfallSequenceNumber_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // latestShortfallSequenceNumber_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            latestShortfallSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+            latestShortfallSequenceNumber_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          latestShortfallSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+          latestShortfallSequenceNumber_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'latestShortfallSequenceNumber' for commitment
+
+          field latestShortfallSequenceNumber_oldCommitment_value_field = latestShortfallSequenceNumber_oldCommitment_value
+          
+        // latestShortfallSequenceNumber_oldCommitment_commitment: preimage check
+
+
+        field latestShortfallSequenceNumber_oldCommitment_commitment_field = poseidon([\
+          latestShortfallSequenceNumber_stateVarId_field,\
+          latestShortfallSequenceNumber_oldCommitment_value_field,\
+          latestShortfallSequenceNumber_oldCommitment_owner_publicKey,\
+          latestShortfallSequenceNumber_oldCommitment_salt        ])
+
+
+        // latestShortfallSequenceNumber_oldCommitment_commitment: existence check
+
+
+        field latestShortfallSequenceNumber_commitmentRoot_check = checkRoot(\
+          latestShortfallSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+          latestShortfallSequenceNumber_oldCommitment_commitment_field,\
+          latestShortfallSequenceNumber_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        latestShortfallSequenceNumber_commitmentRoot_check = if latestShortfallSequenceNumber_oldCommitment_isDummy == true then commitmentRoot else latestShortfallSequenceNumber_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(latestShortfallSequenceNumber_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'latestShortfallSequenceNumber' for commitment
+
+        field latestShortfallSequenceNumber_newCommitment_value_field = latestShortfallSequenceNumber
+
+        // latestShortfallSequenceNumber_newCommitment_commitment - preimage check
+
+        field latestShortfallSequenceNumber_newCommitment_commitment_check_field = poseidon([\
+          latestShortfallSequenceNumber_stateVarId_field,\
+          latestShortfallSequenceNumber_newCommitment_value_field,\
+          latestShortfallSequenceNumber_newCommitment_owner_publicKey,\
+          latestShortfallSequenceNumber_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(latestShortfallSequenceNumber_newCommitment_commitment)[8..256] == field_to_bool_256(latestShortfallSequenceNumber_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // latestSurplusSequenceNumber_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool latestSurplusSequenceNumber_oldCommitment_owner_publicKey_sign = edwardsCompress(latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] latestSurplusSequenceNumber_oldCommitment_yBits = field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point[1])[2..256]
+        latestSurplusSequenceNumber_oldCommitment_yBits[0] = latestSurplusSequenceNumber_oldCommitment_owner_publicKey_sign
+
+        field latestSurplusSequenceNumber_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...latestSurplusSequenceNumber_oldCommitment_yBits])
+
+
+        // Nullify latestSurplusSequenceNumber:
+
+        field latestSurplusSequenceNumber_oldCommitment_nullifier_check_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_oldCommitment_owner_secretKey,\
+          latestSurplusSequenceNumber_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_nullifier)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // latestSurplusSequenceNumber_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            latestSurplusSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+            latestSurplusSequenceNumber_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          latestSurplusSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+          latestSurplusSequenceNumber_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'latestSurplusSequenceNumber' for commitment
+
+          field latestSurplusSequenceNumber_oldCommitment_value_field = latestSurplusSequenceNumber_oldCommitment_value
+          
+        // latestSurplusSequenceNumber_oldCommitment_commitment: preimage check
+
+
+        field latestSurplusSequenceNumber_oldCommitment_commitment_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_oldCommitment_value_field,\
+          latestSurplusSequenceNumber_oldCommitment_owner_publicKey,\
+          latestSurplusSequenceNumber_oldCommitment_salt        ])
+
+
+        // latestSurplusSequenceNumber_oldCommitment_commitment: existence check
+
+
+        field latestSurplusSequenceNumber_commitmentRoot_check = checkRoot(\
+          latestSurplusSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+          latestSurplusSequenceNumber_oldCommitment_commitment_field,\
+          latestSurplusSequenceNumber_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        latestSurplusSequenceNumber_commitmentRoot_check = if latestSurplusSequenceNumber_oldCommitment_isDummy == true then commitmentRoot else latestSurplusSequenceNumber_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'latestSurplusSequenceNumber' for commitment
+
+        field latestSurplusSequenceNumber_newCommitment_value_field = latestSurplusSequenceNumber
+
+        // latestSurplusSequenceNumber_newCommitment_commitment - preimage check
+
+        field latestSurplusSequenceNumber_newCommitment_commitment_check_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_newCommitment_value_field,\
+          latestSurplusSequenceNumber_newCommitment_owner_publicKey,\
+          latestSurplusSequenceNumber_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(latestSurplusSequenceNumber_newCommitment_commitment)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // sequenceNumberInterval_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] sequenceNumberInterval_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(sequenceNumberInterval_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool sequenceNumberInterval_oldCommitment_owner_publicKey_sign = edwardsCompress(sequenceNumberInterval_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] sequenceNumberInterval_oldCommitment_yBits = field_to_bool_256(sequenceNumberInterval_oldCommitment_owner_publicKey_point[1])[2..256]
+        sequenceNumberInterval_oldCommitment_yBits[0] = sequenceNumberInterval_oldCommitment_owner_publicKey_sign
+
+        field sequenceNumberInterval_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...sequenceNumberInterval_oldCommitment_yBits])
+
+
+        // Nullify sequenceNumberInterval:
+
+        field sequenceNumberInterval_oldCommitment_nullifier_check_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_oldCommitment_owner_secretKey,\
+          sequenceNumberInterval_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(sequenceNumberInterval_oldCommitment_nullifier)[8..256] == field_to_bool_256(sequenceNumberInterval_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // sequenceNumberInterval_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            sequenceNumberInterval_nullifier_nonmembershipWitness_siblingPath,\
+            sequenceNumberInterval_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          sequenceNumberInterval_nullifier_nonmembershipWitness_newsiblingPath,\
+          sequenceNumberInterval_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'sequenceNumberInterval' for commitment
+
+          field sequenceNumberInterval_oldCommitment_value_field = sequenceNumberInterval_oldCommitment_value
+          
+        // sequenceNumberInterval_oldCommitment_commitment: preimage check
+
+
+        field sequenceNumberInterval_oldCommitment_commitment_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_oldCommitment_value_field,\
+          sequenceNumberInterval_oldCommitment_owner_publicKey,\
+          sequenceNumberInterval_oldCommitment_salt        ])
+
+
+        // sequenceNumberInterval_oldCommitment_commitment: existence check
+
+
+        field sequenceNumberInterval_commitmentRoot_check = checkRoot(\
+          sequenceNumberInterval_oldCommitment_membershipWitness_siblingPath,\
+          sequenceNumberInterval_oldCommitment_commitment_field,\
+          sequenceNumberInterval_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        sequenceNumberInterval_commitmentRoot_check = if sequenceNumberInterval_oldCommitment_isDummy == true then commitmentRoot else sequenceNumberInterval_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(sequenceNumberInterval_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'sequenceNumberInterval' for commitment
+
+        field sequenceNumberInterval_newCommitment_value_field = sequenceNumberInterval
+
+        // sequenceNumberInterval_newCommitment_commitment - preimage check
+
+        field sequenceNumberInterval_newCommitment_commitment_check_field = poseidon([\
+          sequenceNumberInterval_stateVarId_field,\
+          sequenceNumberInterval_newCommitment_value_field,\
+          sequenceNumberInterval_newCommitment_owner_publicKey,\
+          sequenceNumberInterval_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(sequenceNumberInterval_newCommitment_commitment)[8..256] == field_to_bool_256(sequenceNumberInterval_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_sign = edwardsCompress(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits = field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point[1])[2..256]
+        numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits[0] = numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_sign
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits])
+
+
+        // Nullify numberOfConsecutivePeriodsForShortfall:
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier_check_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_siblingPath,\
+            numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_newsiblingPath,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForShortfall' for commitment
+
+          field numberOfConsecutivePeriodsForShortfall_oldCommitment_value_field = numberOfConsecutivePeriodsForShortfall_oldCommitment_value
+          
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment: preimage check
+
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_value_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_salt        ])
+
+
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment: existence check
+
+
+        field numberOfConsecutivePeriodsForShortfall_commitmentRoot_check = checkRoot(\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_siblingPath,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        numberOfConsecutivePeriodsForShortfall_commitmentRoot_check = if numberOfConsecutivePeriodsForShortfall_oldCommitment_isDummy == true then commitmentRoot else numberOfConsecutivePeriodsForShortfall_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForShortfall' for commitment
+
+        field numberOfConsecutivePeriodsForShortfall_newCommitment_value_field = numberOfConsecutivePeriodsForShortfall
+
+        // numberOfConsecutivePeriodsForShortfall_newCommitment_commitment - preimage check
+
+        field numberOfConsecutivePeriodsForShortfall_newCommitment_commitment_check_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_value_field,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(numberOfConsecutivePeriodsForShortfall_newCommitment_commitment)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // shortfallThreshold_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] shortfallThreshold_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(shortfallThreshold_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool shortfallThreshold_oldCommitment_owner_publicKey_sign = edwardsCompress(shortfallThreshold_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] shortfallThreshold_oldCommitment_yBits = field_to_bool_256(shortfallThreshold_oldCommitment_owner_publicKey_point[1])[2..256]
+        shortfallThreshold_oldCommitment_yBits[0] = shortfallThreshold_oldCommitment_owner_publicKey_sign
+
+        field shortfallThreshold_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...shortfallThreshold_oldCommitment_yBits])
+
+
+        // Nullify shortfallThreshold:
+
+        field shortfallThreshold_oldCommitment_nullifier_check_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_oldCommitment_owner_secretKey,\
+          shortfallThreshold_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(shortfallThreshold_oldCommitment_nullifier)[8..256] == field_to_bool_256(shortfallThreshold_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // shortfallThreshold_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            shortfallThreshold_nullifier_nonmembershipWitness_siblingPath,\
+            shortfallThreshold_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          shortfallThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+          shortfallThreshold_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'shortfallThreshold' for commitment
+
+          field shortfallThreshold_oldCommitment_value_field = shortfallThreshold_oldCommitment_value
+          
+        // shortfallThreshold_oldCommitment_commitment: preimage check
+
+
+        field shortfallThreshold_oldCommitment_commitment_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_oldCommitment_value_field,\
+          shortfallThreshold_oldCommitment_owner_publicKey,\
+          shortfallThreshold_oldCommitment_salt        ])
+
+
+        // shortfallThreshold_oldCommitment_commitment: existence check
+
+
+        field shortfallThreshold_commitmentRoot_check = checkRoot(\
+          shortfallThreshold_oldCommitment_membershipWitness_siblingPath,\
+          shortfallThreshold_oldCommitment_commitment_field,\
+          shortfallThreshold_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        shortfallThreshold_commitmentRoot_check = if shortfallThreshold_oldCommitment_isDummy == true then commitmentRoot else shortfallThreshold_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(shortfallThreshold_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'shortfallThreshold' for commitment
+
+        field shortfallThreshold_newCommitment_value_field = shortfallThreshold
+
+        // shortfallThreshold_newCommitment_commitment - preimage check
+
+        field shortfallThreshold_newCommitment_commitment_check_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_newCommitment_value_field,\
+          shortfallThreshold_newCommitment_owner_publicKey,\
+          shortfallThreshold_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(shortfallThreshold_newCommitment_commitment)[8..256] == field_to_bool_256(shortfallThreshold_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // numberOfConsecutivePeriodsForSurplus_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey_sign = edwardsCompress(numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] numberOfConsecutivePeriodsForSurplus_oldCommitment_yBits = field_to_bool_256(numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey_point[1])[2..256]
+        numberOfConsecutivePeriodsForSurplus_oldCommitment_yBits[0] = numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey_sign
+
+        field numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...numberOfConsecutivePeriodsForSurplus_oldCommitment_yBits])
+
+
+        // Nullify numberOfConsecutivePeriodsForSurplus:
+
+        field numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier_check_field = poseidon([\
+          numberOfConsecutivePeriodsForSurplus_stateVarId_field,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_secretKey,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            numberOfConsecutivePeriodsForSurplus_nullifier_nonmembershipWitness_siblingPath,\
+            numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          numberOfConsecutivePeriodsForSurplus_nullifier_nonmembershipWitness_newsiblingPath,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForSurplus' for commitment
+
+          field numberOfConsecutivePeriodsForSurplus_oldCommitment_value_field = numberOfConsecutivePeriodsForSurplus_oldCommitment_value
+          
+        // numberOfConsecutivePeriodsForSurplus_oldCommitment_commitment: preimage check
+
+
+        field numberOfConsecutivePeriodsForSurplus_oldCommitment_commitment_field = poseidon([\
+          numberOfConsecutivePeriodsForSurplus_stateVarId_field,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_value_field,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_salt        ])
+
+
+        // numberOfConsecutivePeriodsForSurplus_oldCommitment_commitment: existence check
+
+
+        field numberOfConsecutivePeriodsForSurplus_commitmentRoot_check = checkRoot(\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_membershipWitness_siblingPath,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_commitment_field,\
+          numberOfConsecutivePeriodsForSurplus_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        numberOfConsecutivePeriodsForSurplus_commitmentRoot_check = if numberOfConsecutivePeriodsForSurplus_oldCommitment_isDummy == true then commitmentRoot else numberOfConsecutivePeriodsForSurplus_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForSurplus_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForSurplus' for commitment
+
+        field numberOfConsecutivePeriodsForSurplus_newCommitment_value_field = numberOfConsecutivePeriodsForSurplus
+
+        // numberOfConsecutivePeriodsForSurplus_newCommitment_commitment - preimage check
+
+        field numberOfConsecutivePeriodsForSurplus_newCommitment_commitment_check_field = poseidon([\
+          numberOfConsecutivePeriodsForSurplus_stateVarId_field,\
+          numberOfConsecutivePeriodsForSurplus_newCommitment_value_field,\
+          numberOfConsecutivePeriodsForSurplus_newCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForSurplus_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(numberOfConsecutivePeriodsForSurplus_newCommitment_commitment)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForSurplus_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        // surplusThreshold_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] surplusThreshold_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(surplusThreshold_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool surplusThreshold_oldCommitment_owner_publicKey_sign = edwardsCompress(surplusThreshold_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] surplusThreshold_oldCommitment_yBits = field_to_bool_256(surplusThreshold_oldCommitment_owner_publicKey_point[1])[2..256]
+        surplusThreshold_oldCommitment_yBits[0] = surplusThreshold_oldCommitment_owner_publicKey_sign
+
+        field surplusThreshold_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...surplusThreshold_oldCommitment_yBits])
+
+
+        // Nullify surplusThreshold:
+
+        field surplusThreshold_oldCommitment_nullifier_check_field = poseidon([\
+          surplusThreshold_stateVarId_field,\
+          surplusThreshold_oldCommitment_owner_secretKey,\
+          surplusThreshold_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(surplusThreshold_oldCommitment_nullifier)[8..256] == field_to_bool_256(surplusThreshold_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // surplusThreshold_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            surplusThreshold_nullifier_nonmembershipWitness_siblingPath,\
+            surplusThreshold_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          surplusThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+          surplusThreshold_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'surplusThreshold' for commitment
+
+          field surplusThreshold_oldCommitment_value_field = surplusThreshold_oldCommitment_value
+          
+        // surplusThreshold_oldCommitment_commitment: preimage check
+
+
+        field surplusThreshold_oldCommitment_commitment_field = poseidon([\
+          surplusThreshold_stateVarId_field,\
+          surplusThreshold_oldCommitment_value_field,\
+          surplusThreshold_oldCommitment_owner_publicKey,\
+          surplusThreshold_oldCommitment_salt        ])
+
+
+        // surplusThreshold_oldCommitment_commitment: existence check
+
+
+        field surplusThreshold_commitmentRoot_check = checkRoot(\
+          surplusThreshold_oldCommitment_membershipWitness_siblingPath,\
+          surplusThreshold_oldCommitment_commitment_field,\
+          surplusThreshold_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        surplusThreshold_commitmentRoot_check = if surplusThreshold_oldCommitment_isDummy == true then commitmentRoot else surplusThreshold_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(surplusThreshold_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'surplusThreshold' for commitment
+
+        field surplusThreshold_newCommitment_value_field = surplusThreshold
+
+        // surplusThreshold_newCommitment_commitment - preimage check
+
+        field surplusThreshold_newCommitment_commitment_check_field = poseidon([\
+          surplusThreshold_stateVarId_field,\
+          surplusThreshold_newCommitment_value_field,\
+          surplusThreshold_newCommitment_owner_publicKey,\
+          surplusThreshold_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(surplusThreshold_newCommitment_commitment)[8..256] == field_to_bool_256(surplusThreshold_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true

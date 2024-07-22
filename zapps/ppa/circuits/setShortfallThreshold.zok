@@ -1,0 +1,132 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field shortfallThresholdParam,\
+	private field shortfallThreshold_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field shortfallThreshold_oldCommitment_nullifier,\
+	private field[32] shortfallThreshold_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] shortfallThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field shortfallThreshold_oldCommitment_value,\
+	private field shortfallThreshold_oldCommitment_salt,\
+	private bool shortfallThreshold_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field shortfallThreshold_oldCommitment_membershipWitness_index,\
+	private field[32] shortfallThreshold_oldCommitment_membershipWitness_siblingPath,\
+	private field shortfallThreshold_newCommitment_owner_publicKey,\
+	private field shortfallThreshold_newCommitment_salt,\
+	public field shortfallThreshold_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field shortfallThreshold_stateVarId_field = 62
+
+
+        field shortfallThreshold = shortfallThreshold_oldCommitment_value
+
+shortfallThreshold = shortfallThresholdParam
+
+
+        // shortfallThreshold_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] shortfallThreshold_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(shortfallThreshold_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool shortfallThreshold_oldCommitment_owner_publicKey_sign = edwardsCompress(shortfallThreshold_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] shortfallThreshold_oldCommitment_yBits = field_to_bool_256(shortfallThreshold_oldCommitment_owner_publicKey_point[1])[2..256]
+        shortfallThreshold_oldCommitment_yBits[0] = shortfallThreshold_oldCommitment_owner_publicKey_sign
+
+        field shortfallThreshold_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...shortfallThreshold_oldCommitment_yBits])
+
+
+        // Nullify shortfallThreshold:
+
+        field shortfallThreshold_oldCommitment_nullifier_check_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_oldCommitment_owner_secretKey,\
+          shortfallThreshold_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(shortfallThreshold_oldCommitment_nullifier)[8..256] == field_to_bool_256(shortfallThreshold_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // shortfallThreshold_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            shortfallThreshold_nullifier_nonmembershipWitness_siblingPath,\
+            shortfallThreshold_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          shortfallThreshold_nullifier_nonmembershipWitness_newsiblingPath,\
+          shortfallThreshold_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'shortfallThreshold' for commitment
+
+          field shortfallThreshold_oldCommitment_value_field = shortfallThreshold_oldCommitment_value
+          
+        // shortfallThreshold_oldCommitment_commitment: preimage check
+
+
+        field shortfallThreshold_oldCommitment_commitment_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_oldCommitment_value_field,\
+          shortfallThreshold_oldCommitment_owner_publicKey,\
+          shortfallThreshold_oldCommitment_salt        ])
+
+
+        // shortfallThreshold_oldCommitment_commitment: existence check
+
+
+        field shortfallThreshold_commitmentRoot_check = checkRoot(\
+          shortfallThreshold_oldCommitment_membershipWitness_siblingPath,\
+          shortfallThreshold_oldCommitment_commitment_field,\
+          shortfallThreshold_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        shortfallThreshold_commitmentRoot_check = if shortfallThreshold_oldCommitment_isDummy == true then commitmentRoot else shortfallThreshold_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(shortfallThreshold_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'shortfallThreshold' for commitment
+
+        field shortfallThreshold_newCommitment_value_field = shortfallThreshold
+
+        // shortfallThreshold_newCommitment_commitment - preimage check
+
+        field shortfallThreshold_newCommitment_commitment_check_field = poseidon([\
+          shortfallThreshold_stateVarId_field,\
+          shortfallThreshold_newCommitment_value_field,\
+          shortfallThreshold_newCommitment_owner_publicKey,\
+          shortfallThreshold_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(shortfallThreshold_newCommitment_commitment)[8..256] == field_to_bool_256(shortfallThreshold_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true

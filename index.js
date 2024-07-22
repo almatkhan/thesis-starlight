@@ -1,1 +1,0 @@
-import { zappify } from "@eyblockchain/starlight";

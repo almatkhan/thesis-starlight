@@ -1,0 +1,132 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field dailyInterestRateParam,\
+	private field dailyInterestRate_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field dailyInterestRate_oldCommitment_nullifier,\
+	private field[32] dailyInterestRate_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] dailyInterestRate_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field dailyInterestRate_oldCommitment_value,\
+	private field dailyInterestRate_oldCommitment_salt,\
+	private bool dailyInterestRate_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field dailyInterestRate_oldCommitment_membershipWitness_index,\
+	private field[32] dailyInterestRate_oldCommitment_membershipWitness_siblingPath,\
+	private field dailyInterestRate_newCommitment_owner_publicKey,\
+	private field dailyInterestRate_newCommitment_salt,\
+	public field dailyInterestRate_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field dailyInterestRate_stateVarId_field = 11
+
+
+        field dailyInterestRate = dailyInterestRate_oldCommitment_value
+
+dailyInterestRate = dailyInterestRateParam
+
+
+        // dailyInterestRate_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] dailyInterestRate_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(dailyInterestRate_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool dailyInterestRate_oldCommitment_owner_publicKey_sign = edwardsCompress(dailyInterestRate_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] dailyInterestRate_oldCommitment_yBits = field_to_bool_256(dailyInterestRate_oldCommitment_owner_publicKey_point[1])[2..256]
+        dailyInterestRate_oldCommitment_yBits[0] = dailyInterestRate_oldCommitment_owner_publicKey_sign
+
+        field dailyInterestRate_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...dailyInterestRate_oldCommitment_yBits])
+
+
+        // Nullify dailyInterestRate:
+
+        field dailyInterestRate_oldCommitment_nullifier_check_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_oldCommitment_owner_secretKey,\
+          dailyInterestRate_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(dailyInterestRate_oldCommitment_nullifier)[8..256] == field_to_bool_256(dailyInterestRate_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // dailyInterestRate_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            dailyInterestRate_nullifier_nonmembershipWitness_siblingPath,\
+            dailyInterestRate_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          dailyInterestRate_nullifier_nonmembershipWitness_newsiblingPath,\
+          dailyInterestRate_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'dailyInterestRate' for commitment
+
+          field dailyInterestRate_oldCommitment_value_field = dailyInterestRate_oldCommitment_value
+          
+        // dailyInterestRate_oldCommitment_commitment: preimage check
+
+
+        field dailyInterestRate_oldCommitment_commitment_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_oldCommitment_value_field,\
+          dailyInterestRate_oldCommitment_owner_publicKey,\
+          dailyInterestRate_oldCommitment_salt        ])
+
+
+        // dailyInterestRate_oldCommitment_commitment: existence check
+
+
+        field dailyInterestRate_commitmentRoot_check = checkRoot(\
+          dailyInterestRate_oldCommitment_membershipWitness_siblingPath,\
+          dailyInterestRate_oldCommitment_commitment_field,\
+          dailyInterestRate_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        dailyInterestRate_commitmentRoot_check = if dailyInterestRate_oldCommitment_isDummy == true then commitmentRoot else dailyInterestRate_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(dailyInterestRate_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'dailyInterestRate' for commitment
+
+        field dailyInterestRate_newCommitment_value_field = dailyInterestRate
+
+        // dailyInterestRate_newCommitment_commitment - preimage check
+
+        field dailyInterestRate_newCommitment_commitment_check_field = poseidon([\
+          dailyInterestRate_stateVarId_field,\
+          dailyInterestRate_newCommitment_value_field,\
+          dailyInterestRate_newCommitment_owner_publicKey,\
+          dailyInterestRate_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(dailyInterestRate_newCommitment_commitment)[8..256] == field_to_bool_256(dailyInterestRate_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true

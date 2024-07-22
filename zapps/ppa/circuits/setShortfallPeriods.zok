@@ -1,0 +1,132 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field shortfallPeriods,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field numberOfConsecutivePeriodsForShortfall_oldCommitment_value,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_salt,\
+	private bool numberOfConsecutivePeriodsForShortfall_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_index,\
+	private field[32] numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_siblingPath,\
+	private field numberOfConsecutivePeriodsForShortfall_newCommitment_owner_publicKey,\
+	private field numberOfConsecutivePeriodsForShortfall_newCommitment_salt,\
+	public field numberOfConsecutivePeriodsForShortfall_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field numberOfConsecutivePeriodsForShortfall_stateVarId_field = 60
+
+
+        field numberOfConsecutivePeriodsForShortfall = numberOfConsecutivePeriodsForShortfall_oldCommitment_value
+
+numberOfConsecutivePeriodsForShortfall = shortfallPeriods
+
+
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_sign = edwardsCompress(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits = field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_point[1])[2..256]
+        numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits[0] = numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey_sign
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...numberOfConsecutivePeriodsForShortfall_oldCommitment_yBits])
+
+
+        // Nullify numberOfConsecutivePeriodsForShortfall:
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier_check_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_secretKey,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_siblingPath,\
+            numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          numberOfConsecutivePeriodsForShortfall_nullifier_nonmembershipWitness_newsiblingPath,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForShortfall' for commitment
+
+          field numberOfConsecutivePeriodsForShortfall_oldCommitment_value_field = numberOfConsecutivePeriodsForShortfall_oldCommitment_value
+          
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment: preimage check
+
+
+        field numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_value_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_salt        ])
+
+
+        // numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment: existence check
+
+
+        field numberOfConsecutivePeriodsForShortfall_commitmentRoot_check = checkRoot(\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_siblingPath,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_commitment_field,\
+          numberOfConsecutivePeriodsForShortfall_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        numberOfConsecutivePeriodsForShortfall_commitmentRoot_check = if numberOfConsecutivePeriodsForShortfall_oldCommitment_isDummy == true then commitmentRoot else numberOfConsecutivePeriodsForShortfall_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'numberOfConsecutivePeriodsForShortfall' for commitment
+
+        field numberOfConsecutivePeriodsForShortfall_newCommitment_value_field = numberOfConsecutivePeriodsForShortfall
+
+        // numberOfConsecutivePeriodsForShortfall_newCommitment_commitment - preimage check
+
+        field numberOfConsecutivePeriodsForShortfall_newCommitment_commitment_check_field = poseidon([\
+          numberOfConsecutivePeriodsForShortfall_stateVarId_field,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_value_field,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_owner_publicKey,\
+          numberOfConsecutivePeriodsForShortfall_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(numberOfConsecutivePeriodsForShortfall_newCommitment_commitment)[8..256] == field_to_bool_256(numberOfConsecutivePeriodsForShortfall_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true

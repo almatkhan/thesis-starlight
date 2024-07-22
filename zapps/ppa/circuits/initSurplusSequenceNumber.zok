@@ -1,0 +1,131 @@
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
+from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+
+def main(\
+	private field latestSurplusSequenceNumber_oldCommitment_owner_secretKey,\
+	public field nullifierRoot,\
+	public field newNullifierRoot,\
+	public field latestSurplusSequenceNumber_oldCommitment_nullifier,\
+	private field[32] latestSurplusSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+	private field[32] latestSurplusSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+	private  field latestSurplusSequenceNumber_oldCommitment_value,\
+	private field latestSurplusSequenceNumber_oldCommitment_salt,\
+	private bool latestSurplusSequenceNumber_oldCommitment_isDummy,\
+	public field commitmentRoot,\
+	private field latestSurplusSequenceNumber_oldCommitment_membershipWitness_index,\
+	private field[32] latestSurplusSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+	private field latestSurplusSequenceNumber_newCommitment_owner_publicKey,\
+	private field latestSurplusSequenceNumber_newCommitment_salt,\
+	public field latestSurplusSequenceNumber_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code each stateVarId into the circuit:
+        field latestSurplusSequenceNumber_stateVarId_field = 29
+
+
+        field latestSurplusSequenceNumber = latestSurplusSequenceNumber_oldCommitment_value
+
+latestSurplusSequenceNumber = 0
+
+
+        // latestSurplusSequenceNumber_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool latestSurplusSequenceNumber_oldCommitment_owner_publicKey_sign = edwardsCompress(latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] latestSurplusSequenceNumber_oldCommitment_yBits = field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_owner_publicKey_point[1])[2..256]
+        latestSurplusSequenceNumber_oldCommitment_yBits[0] = latestSurplusSequenceNumber_oldCommitment_owner_publicKey_sign
+
+        field latestSurplusSequenceNumber_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...latestSurplusSequenceNumber_oldCommitment_yBits])
+
+
+        // Nullify latestSurplusSequenceNumber:
+
+        field latestSurplusSequenceNumber_oldCommitment_nullifier_check_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_oldCommitment_owner_secretKey,\
+          latestSurplusSequenceNumber_oldCommitment_salt\
+        ])
+
+        assert(\
+        field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_nullifier)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_oldCommitment_nullifier_check_field)[8..256]\
+        )
+        // latestSurplusSequenceNumber_oldCommitment_nullifier : non-existence check
+        
+        assert(\
+          nullifierRoot == checkproof(\
+            latestSurplusSequenceNumber_nullifier_nonmembershipWitness_siblingPath,\
+            latestSurplusSequenceNumber_oldCommitment_nullifier\
+           )       )
+
+       assert(\
+        newNullifierRoot == checkUpdatedPath(\
+          latestSurplusSequenceNumber_nullifier_nonmembershipWitness_newsiblingPath,\
+          latestSurplusSequenceNumber_oldCommitment_nullifier\
+        )        )
+
+        
+
+
+
+        // prepare secret state 'latestSurplusSequenceNumber' for commitment
+
+          field latestSurplusSequenceNumber_oldCommitment_value_field = latestSurplusSequenceNumber_oldCommitment_value
+          
+        // latestSurplusSequenceNumber_oldCommitment_commitment: preimage check
+
+
+        field latestSurplusSequenceNumber_oldCommitment_commitment_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_oldCommitment_value_field,\
+          latestSurplusSequenceNumber_oldCommitment_owner_publicKey,\
+          latestSurplusSequenceNumber_oldCommitment_salt        ])
+
+
+        // latestSurplusSequenceNumber_oldCommitment_commitment: existence check
+
+
+        field latestSurplusSequenceNumber_commitmentRoot_check = checkRoot(\
+          latestSurplusSequenceNumber_oldCommitment_membershipWitness_siblingPath,\
+          latestSurplusSequenceNumber_oldCommitment_commitment_field,\
+          latestSurplusSequenceNumber_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        latestSurplusSequenceNumber_commitmentRoot_check = if latestSurplusSequenceNumber_oldCommitment_isDummy == true then commitmentRoot else latestSurplusSequenceNumber_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'latestSurplusSequenceNumber' for commitment
+
+        field latestSurplusSequenceNumber_newCommitment_value_field = latestSurplusSequenceNumber
+
+        // latestSurplusSequenceNumber_newCommitment_commitment - preimage check
+
+        field latestSurplusSequenceNumber_newCommitment_commitment_check_field = poseidon([\
+          latestSurplusSequenceNumber_stateVarId_field,\
+          latestSurplusSequenceNumber_newCommitment_value_field,\
+          latestSurplusSequenceNumber_newCommitment_owner_publicKey,\
+          latestSurplusSequenceNumber_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(latestSurplusSequenceNumber_newCommitment_commitment)[8..256] == field_to_bool_256(latestSurplusSequenceNumber_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true
