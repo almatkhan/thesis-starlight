@@ -28,7 +28,7 @@ contract ZKSender {
     IERC20 public immutable token;
     uint public reserve;
 
-    mapping(address => uint) public balances;
+    secret mapping(address => uint) public balances;
 
     constructor(address _token) {
         token = IERC20(_token);
@@ -44,7 +44,7 @@ contract ZKSender {
         );
 
         // Then, update the balance of the user in the ZKP way
-        balances[msg.sender] += _amountIn;
+        unknown balances[msg.sender] += _amountIn;
         reserve += _amountIn;
 
         // We could apply some fees here.

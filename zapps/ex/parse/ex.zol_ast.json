@@ -993,7 +993,8 @@
                             }
                         }
                     },
-                    "visibility": "public"
+                    "visibility": "public",
+                    "isSecret": true
                 },
                 {
                     "body": {
@@ -1496,7 +1497,8 @@
                                             "typeDescriptions": {
                                                 "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
                                                 "typeString": "mapping(address => uint256)"
-                                            }
+                                            },
+                                            "isUnknown": true
                                         },
                                         "id": 120,
                                         "indexExpression": {
