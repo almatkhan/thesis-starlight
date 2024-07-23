@@ -5,7 +5,8 @@
             "nodeType": "SetupCommonFilesBoilerplate",
             "contractName": "IERC20Shield",
             "functionNames": [
-                "vault"
+                "vault",
+                "unVault"
             ]
         },
         {
@@ -17,12 +18,21 @@
                     "nodeType": "IntegrationApiServicesBoilerplate",
                     "contractName": "IERC20Shield",
                     "functionNames": [
-                        "vault"
+                        "vault",
+                        "unVault"
                     ],
                     "functions": [
                         {
                             "nodeType": "IntegrationApiServiceFunction",
                             "name": "vault",
+                            "parameters": [],
+                            "returnParameters": [],
+                            "decrementsSecretState": [],
+                            "isConstructor": false
+                        },
+                        {
+                            "nodeType": "IntegrationApiServiceFunction",
+                            "name": "unVault",
                             "parameters": [],
                             "returnParameters": [],
                             "decrementsSecretState": [],
@@ -46,6 +56,10 @@
                         {
                             "nodeType": "IntegrationApiRoutesFunction",
                             "name": "vault"
+                        },
+                        {
+                            "nodeType": "IntegrationApiRoutesFunction",
+                            "name": "unVault"
                         }
                     ],
                     "contractImports": []
@@ -70,8 +84,23 @@
                             ],
                             "mappingKey": "msg",
                             "mappingName": "balances",
-                            "isPartitioned": true,
-                            "nullifierRequired": false,
+                            "isWhole": true,
+                            "nullifierRequired": true,
+                            "structProperties": null,
+                            "owner": null,
+                            "ownerIsSecret": null
+                        },
+                        {
+                            "privateStateName": "balances_msgSender",
+                            "stateVarId": [
+                                77,
+                                "msg",
+                                "msg"
+                            ],
+                            "mappingKey": "msg",
+                            "mappingName": "balances",
+                            "isWhole": true,
+                            "nullifierRequired": true,
                             "structProperties": null,
                             "owner": null,
                             "ownerIsSecret": null
@@ -104,7 +133,7 @@
                                         "declarationType": "parameter",
                                         "typeName": {
                                             "nodeType": "ElementaryTypeName",
-                                            "name": "uint"
+                                            "name": "uint256"
                                         }
                                     }
                                 ],
@@ -124,6 +153,42 @@
                             },
                             "decrementsSecretState": false,
                             "newCommitmentsRequired": true
+                        },
+                        {
+                            "nodeType": "IntegrationTestFunction",
+                            "name": "unVault",
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "_amountOut",
+                                        "id": 133,
+                                        "isSecret": false,
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "name": "uint256"
+                                        }
+                                    }
+                                ],
+                                "modifiedStateVariables": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "balances_msgSender",
+                                        "id": 0,
+                                        "isSecret": true,
+                                        "declarationType": "state",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "name": "mapping(address => uint256)"
+                                        }
+                                    }
+                                ]
+                            },
+                            "decrementsSecretState": true,
+                            "newCommitmentsRequired": true
                         }
                     ]
                 }
@@ -133,7 +198,8 @@
             "nodeType": "SetupCommonFilesBoilerplate",
             "contractName": "ZKSenderShield",
             "functionNames": [
-                "vault"
+                "vault",
+                "unVault"
             ]
         },
         {
@@ -145,7 +211,8 @@
                     "nodeType": "IntegrationApiServicesBoilerplate",
                     "contractName": "ZKSenderShield",
                     "functionNames": [
-                        "vault"
+                        "vault",
+                        "unVault"
                     ],
                     "functions": [
                         {
@@ -163,7 +230,7 @@
                                         "declarationType": "parameter",
                                         "typeName": {
                                             "nodeType": "ElementaryTypeName",
-                                            "name": "uint"
+                                            "name": "uint256"
                                         }
                                     }
                                 ],
@@ -202,6 +269,63 @@
                             "decrementsSecretState": [],
                             "isConstructor": false,
                             "newCommitmentsRequired": true
+                        },
+                        {
+                            "nodeType": "IntegrationApiServiceFunction",
+                            "name": "unVault",
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "_amountOut",
+                                        "id": 133,
+                                        "isSecret": false,
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "name": "uint256"
+                                        }
+                                    }
+                                ],
+                                "modifiedStateVariables": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "balances_msgSender",
+                                        "id": 0,
+                                        "isSecret": true,
+                                        "declarationType": "state",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "name": "mapping(address => uint256)"
+                                        }
+                                    }
+                                ]
+                            },
+                            "returnParameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "true",
+                                        "id": 136,
+                                        "isSecret": false,
+                                        "interactsWithSecret": false,
+                                        "declarationType": "",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "name": "bool"
+                                        }
+                                    }
+                                ],
+                                "modifiedStateVariables": []
+                            },
+                            "decrementsSecretState": [
+                                "balances_msgSender"
+                            ],
+                            "isConstructor": false,
+                            "newCommitmentsRequired": true
                         }
                     ],
                     "constructorParams": [],
@@ -221,6 +345,10 @@
                         {
                             "nodeType": "IntegrationApiRoutesFunction",
                             "name": "vault"
+                        },
+                        {
+                            "nodeType": "IntegrationApiRoutesFunction",
+                            "name": "unVault"
                         }
                     ],
                     "contractImports": []
@@ -245,8 +373,23 @@
                             ],
                             "mappingKey": "msg",
                             "mappingName": "balances",
-                            "isPartitioned": true,
-                            "nullifierRequired": false,
+                            "isWhole": true,
+                            "nullifierRequired": true,
+                            "structProperties": null,
+                            "owner": null,
+                            "ownerIsSecret": null
+                        },
+                        {
+                            "privateStateName": "balances_msgSender",
+                            "stateVarId": [
+                                77,
+                                "msg",
+                                "msg"
+                            ],
+                            "mappingKey": "msg",
+                            "mappingName": "balances",
+                            "isWhole": true,
+                            "nullifierRequired": true,
                             "structProperties": null,
                             "owner": null,
                             "ownerIsSecret": null
@@ -283,7 +426,7 @@
                                 "declarationType": "parameter",
                                 "typeName": {
                                     "nodeType": "ElementaryTypeName",
-                                    "name": "uint"
+                                    "name": "uint256"
                                 }
                             }
                         ],
@@ -309,6 +452,23 @@
                                 "contractName": "ZKSenderShield"
                             },
                             {
+                                "nodeType": "InitialisePreimage",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "accessedOnly": false,
+                                        "mappingKey": "msg",
+                                        "mappingName": "balances",
+                                        "structProperties": null
+                                    }
+                                }
+                            },
+                            {
                                 "nodeType": "ReadPreimage",
                                 "privateStates": {
                                     "balances_msgSender": {
@@ -319,14 +479,27 @@
                                             "msg"
                                         ],
                                         "isSharedSecret": false,
-                                        "isPartitioned": true,
+                                        "isWhole": true,
                                         "structProperties": null,
                                         "mappingKey": "msg",
                                         "mappingName": "balances",
-                                        "nullifierRequired": false,
+                                        "nullifierRequired": true,
+                                        "accessedOnly": false,
+                                        "initialised": true,
                                         "owner": null,
                                         "ownerIsSecret": null,
                                         "ownerIsParam": null
+                                    }
+                                },
+                                "contractName": "ZKSenderShield"
+                            },
+                            {
+                                "nodeType": "MembershipWitness",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "accessedOnly": false,
+                                        "isWhole": true
                                     }
                                 },
                                 "contractName": "ZKSenderShield"
@@ -376,9 +549,23 @@
                                 }
                             },
                             {
-                                "nodeType": "ExpressionStatement",
+                                "nodeType": "VariableDeclarationStatement",
                                 "id": 123,
-                                "expression": {
+                                "interactsWithSecret": true,
+                                "declarations": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "balances_msgSender",
+                                        "id": 0,
+                                        "isSecret": true,
+                                        "isAccessed": true,
+                                        "declarationType": "state",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName"
+                                        }
+                                    }
+                                ],
+                                "initialValue": {
                                     "nodeType": "Assignment",
                                     "operator": "+=",
                                     "leftHandSide": {
@@ -391,12 +578,7 @@
                                         "name": "_amountIn",
                                         "subType": "uint256"
                                     }
-                                },
-                                "interactsWithSecret": true,
-                                "incrementsSecretState": true,
-                                "decrementsSecretState": false,
-                                "privateStateName": "balances_msgSender",
-                                "increments": "parseInt(_amountIn.integer, 10)"
+                                }
                             },
                             {
                                 "nodeType": "ExpressionStatement",
@@ -436,6 +618,16 @@
                         ],
                         "postStatements": [
                             {
+                                "nodeType": "CalculateNullifier",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "accessedOnly": false,
+                                        "isSharedSecret": false,
+                                        "isWhole": true
+                                    }
+                                }
+                            },
+                            {
                                 "nodeType": "CalculateCommitment",
                                 "privateStates": {
                                     "balances_msgSender": {
@@ -446,8 +638,8 @@
                                             "msg"
                                         ],
                                         "isSharedSecret": false,
-                                        "isPartitioned": true,
-                                        "nullifierRequired": false,
+                                        "isWhole": true,
+                                        "nullifierRequired": true,
                                         "structProperties": null,
                                         "owner": null,
                                         "ownerIsSecret": null
@@ -465,8 +657,9 @@
                                             "msg",
                                             "msg"
                                         ],
+                                        "accessedOnly": false,
                                         "isSharedSecret": false,
-                                        "nullifierRequired": false,
+                                        "nullifierRequired": true,
                                         "increment": [
                                             {
                                                 "name": "_amountIn",
@@ -475,7 +668,7 @@
                                         ],
                                         "structProperties": null,
                                         "isMapping": true,
-                                        "isPartitioned": true,
+                                        "isWhole": true,
                                         "initialisationRequired": true,
                                         "owner": null,
                                         "ownerIsSecret": null,
@@ -499,8 +692,8 @@
                                         ],
                                         "mappingKey": "msg",
                                         "mappingName": "balances",
-                                        "isPartitioned": true,
-                                        "nullifierRequired": false,
+                                        "isWhole": true,
+                                        "nullifierRequired": true,
                                         "structProperties": null,
                                         "owner": null,
                                         "ownerIsSecret": null
@@ -511,8 +704,9 @@
                                 "nodeType": "SendTransaction",
                                 "privateStates": {
                                     "balances_msgSender": {
-                                        "isPartitioned": true,
-                                        "nullifierRequired": false
+                                        "isWhole": true,
+                                        "accessedOnly": false,
+                                        "nullifierRequired": true
                                     }
                                 },
                                 "functionName": "vault",
@@ -534,11 +728,11 @@
                                             "msg"
                                         ],
                                         "isSharedSecret": false,
-                                        "isPartitioned": true,
+                                        "isWhole": true,
                                         "structProperties": null,
                                         "mappingKey": "msg",
                                         "mappingName": "balances",
-                                        "nullifierRequired": false,
+                                        "nullifierRequired": true,
                                         "owner": null,
                                         "ownerIsSecret": null
                                     }
@@ -566,6 +760,408 @@
                         ],
                         "modifiedStateVariables": []
                     }
+                }
+            ]
+        },
+        {
+            "nodeType": "File",
+            "fileName": "unVault",
+            "fileExtension": ".mjs",
+            "nodes": [
+                {
+                    "nodeType": "Imports",
+                    "imports": []
+                },
+                {
+                    "nodeType": "FunctionDefinition",
+                    "name": "unVault",
+                    "contractName": "ZKSenderShield",
+                    "parameters": {
+                        "nodeType": "ParameterList",
+                        "parameters": [
+                            {
+                                "nodeType": "VariableDeclaration",
+                                "name": "_amountOut",
+                                "id": 133,
+                                "isSecret": false,
+                                "interactsWithSecret": true,
+                                "declarationType": "parameter",
+                                "typeName": {
+                                    "nodeType": "ElementaryTypeName",
+                                    "name": "uint256"
+                                }
+                            }
+                        ],
+                        "modifiedStateVariables": [
+                            {
+                                "nodeType": "VariableDeclaration",
+                                "name": "balances_msgSender",
+                                "id": 0,
+                                "isSecret": true,
+                                "declarationType": "state",
+                                "typeName": {
+                                    "nodeType": "ElementaryTypeName",
+                                    "name": "mapping(address => uint256)"
+                                }
+                            }
+                        ]
+                    },
+                    "body": {
+                        "nodeType": "Block",
+                        "preStatements": [
+                            {
+                                "nodeType": "InitialiseKeys",
+                                "contractName": "ZKSenderShield"
+                            },
+                            {
+                                "nodeType": "InitialisePreimage",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "accessedOnly": false,
+                                        "mappingKey": "msg",
+                                        "mappingName": "balances",
+                                        "structProperties": null
+                                    }
+                                }
+                            },
+                            {
+                                "nodeType": "ReadPreimage",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "increment": "parseInt(_amountOut.integer, 10)",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "isSharedSecret": false,
+                                        "isWhole": true,
+                                        "structProperties": null,
+                                        "mappingKey": "msg",
+                                        "mappingName": "balances",
+                                        "nullifierRequired": true,
+                                        "accessedOnly": false,
+                                        "initialised": true,
+                                        "owner": null,
+                                        "ownerIsSecret": null,
+                                        "ownerIsParam": null
+                                    }
+                                },
+                                "contractName": "ZKSenderShield"
+                            },
+                            {
+                                "nodeType": "MembershipWitness",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "accessedOnly": false,
+                                        "isWhole": true
+                                    }
+                                },
+                                "contractName": "ZKSenderShield"
+                            }
+                        ],
+                        "statements": [
+                            {
+                                "nodeType": "VariableDeclarationStatement",
+                                "id": 171,
+                                "interactsWithSecret": true,
+                                "declarations": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "balances_msgSender",
+                                        "id": 0,
+                                        "isSecret": true,
+                                        "isAccessed": true,
+                                        "declarationType": "state",
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 147,
+                                "expression": {
+                                    "nodeType": "RequireStatement",
+                                    "condition": [
+                                        {
+                                            "nodeType": "BinaryOperation",
+                                            "leftExpression": {
+                                                "nodeType": "Identifier",
+                                                "name": "balances_msgSender",
+                                                "subType": "uint256"
+                                            },
+                                            "operator": ">=",
+                                            "rightExpression": {
+                                                "nodeType": "Identifier",
+                                                "name": "_amountOut",
+                                                "subType": "uint256"
+                                            }
+                                        }
+                                    ],
+                                    "message": [
+                                        {
+                                            "nodeType": "Literal",
+                                            "value": "Unsufficient funds"
+                                        }
+                                    ]
+                                },
+                                "interactsWithSecret": true
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 154,
+                                "expression": {
+                                    "nodeType": "RequireStatement",
+                                    "condition": [
+                                        {
+                                            "nodeType": "BinaryOperation",
+                                            "leftExpression": {
+                                                "nodeType": "Identifier",
+                                                "name": "reserve",
+                                                "subType": "uint256"
+                                            },
+                                            "operator": ">=",
+                                            "rightExpression": {
+                                                "nodeType": "Identifier",
+                                                "name": "_amountOut",
+                                                "subType": "uint256"
+                                            }
+                                        }
+                                    ],
+                                    "message": [
+                                        {
+                                            "nodeType": "Literal",
+                                            "value": "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 164,
+                                "expression": {
+                                    "nodeType": "RequireStatement",
+                                    "condition": [],
+                                    "message": [
+                                        {
+                                            "nodeType": "Literal",
+                                            "value": "Transfer failed"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 171,
+                                "expression": {
+                                    "nodeType": "Assignment",
+                                    "operator": "-=",
+                                    "leftHandSide": {
+                                        "nodeType": "Identifier",
+                                        "name": "balances_msgSender",
+                                        "subType": "uint256"
+                                    },
+                                    "rightHandSide": {
+                                        "nodeType": "Identifier",
+                                        "name": "_amountOut",
+                                        "subType": "uint256"
+                                    }
+                                },
+                                "interactsWithSecret": true
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 175,
+                                "expression": {
+                                    "nodeType": "Assignment",
+                                    "operator": "=",
+                                    "leftHandSide": {
+                                        "nodeType": "Identifier",
+                                        "name": "reserve",
+                                        "subType": "uint256"
+                                    },
+                                    "rightHandSide": {
+                                        "nodeType": "BinaryOperation",
+                                        "leftExpression": {
+                                            "nodeType": "Identifier",
+                                            "name": "reserve",
+                                            "subType": "uint256"
+                                        },
+                                        "operator": "-",
+                                        "rightExpression": {
+                                            "nodeType": "Identifier",
+                                            "name": "_amountOut",
+                                            "subType": "uint256"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "nodeType": "Literal",
+                                "value": "true",
+                                "expression": {
+                                    "nodeType": "Literal",
+                                    "value": "true"
+                                }
+                            }
+                        ],
+                        "postStatements": [
+                            {
+                                "nodeType": "CalculateNullifier",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "accessedOnly": false,
+                                        "isSharedSecret": false,
+                                        "isWhole": true
+                                    }
+                                }
+                            },
+                            {
+                                "nodeType": "CalculateCommitment",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "isSharedSecret": false,
+                                        "isWhole": true,
+                                        "nullifierRequired": true,
+                                        "structProperties": null,
+                                        "owner": null,
+                                        "ownerIsSecret": null
+                                    }
+                                }
+                            },
+                            {
+                                "nodeType": "GenerateProof",
+                                "circuitName": "unVault",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "accessedOnly": false,
+                                        "isSharedSecret": false,
+                                        "nullifierRequired": true,
+                                        "increment": [
+                                            {
+                                                "name": "_amountOut",
+                                                "precedingOperator": "-"
+                                            }
+                                        ],
+                                        "structProperties": null,
+                                        "isMapping": true,
+                                        "isWhole": true,
+                                        "initialisationRequired": true,
+                                        "owner": null,
+                                        "ownerIsSecret": null,
+                                        "localMappingKey": false
+                                    }
+                                },
+                                "parameters": [
+                                    "balances_msgSender",
+                                    "_amountOut"
+                                ]
+                            },
+                            {
+                                "nodeType": "EncryptBackupPreimage",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "privateStateName": "balances_msgSender",
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "mappingKey": "msg",
+                                        "mappingName": "balances",
+                                        "isWhole": true,
+                                        "nullifierRequired": true,
+                                        "structProperties": null,
+                                        "owner": null,
+                                        "ownerIsSecret": null
+                                    }
+                                }
+                            },
+                            {
+                                "nodeType": "SendTransaction",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "isWhole": true,
+                                        "accessedOnly": false,
+                                        "nullifierRequired": true
+                                    }
+                                },
+                                "functionName": "unVault",
+                                "contractName": "ZKSenderShield",
+                                "publicInputs": [
+                                    "_amountOut"
+                                ],
+                                "returnInputs": [
+                                    "true"
+                                ]
+                            },
+                            {
+                                "nodeType": "WritePreimage",
+                                "privateStates": {
+                                    "balances_msgSender": {
+                                        "stateVarId": [
+                                            77,
+                                            "msg",
+                                            "msg"
+                                        ],
+                                        "isSharedSecret": false,
+                                        "isWhole": true,
+                                        "structProperties": null,
+                                        "mappingKey": "msg",
+                                        "mappingName": "balances",
+                                        "nullifierRequired": true,
+                                        "owner": null,
+                                        "ownerIsSecret": null
+                                    }
+                                },
+                                "contractName": "ZKSenderShield",
+                                "onChainKeyRegistry": false
+                            }
+                        ]
+                    },
+                    "returnParameters": {
+                        "nodeType": "ParameterList",
+                        "parameters": [
+                            {
+                                "nodeType": "VariableDeclaration",
+                                "name": "true",
+                                "id": 136,
+                                "isSecret": false,
+                                "interactsWithSecret": false,
+                                "declarationType": "",
+                                "typeName": {
+                                    "nodeType": "ElementaryTypeName",
+                                    "name": "bool"
+                                }
+                            }
+                        ],
+                        "modifiedStateVariables": []
+                    },
+                    "decrementedSecretStates": [
+                        "balances_msgSender"
+                    ],
+                    "decrementsSecretState": true
                 }
             ]
         }
