@@ -1,132 +1,111 @@
-from "ecc/babyjubjubParams" import main as curveParams
-from "ecc/edwardsScalarMult" import main as scalarMult
-from "ecc/edwardsCompress" import main as edwardsCompress
-from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
-from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
-from "hashes/poseidon/poseidon.zok" import main as poseidon
-from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import main as checkproof
-from "./common/merkle-tree/sparse-merkle-tree/checkproof.zok" import checkUpdatedPath as checkUpdatedPath
-from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+import "ecc/babyjubjubParams" as curveParams;
+import "ecc/edwardsScalarMult" as scalarMult;
+import "ecc/edwardsCompress" as edwardsCompress;
+import "utils/pack/bool/pack256" as bool_256_to_field;
+import "utils/pack/bool/nonStrictUnpack256" as field_to_bool_256;
+import "hashes/poseidon/poseidon" as poseidon;
+import "./common/merkle-tree/sparse-merkle-tree/checkproof" as checkproof;
+import "./common/merkle-tree/sparse-merkle-tree/checkproof" as checkUpdatedPath;
+import "./common/merkle-tree/mimc/altbn254/verify-membership/height32" as checkRoot;
 
-def main(\
-	private field volumeShareParam,\
-	private field volumeShare_oldCommitment_owner_secretKey,\
-	public field nullifierRoot,\
-	public field newNullifierRoot,\
-	public field volumeShare_oldCommitment_nullifier,\
-	private field[32] volumeShare_nullifier_nonmembershipWitness_siblingPath,\
-	private field[32] volumeShare_nullifier_nonmembershipWitness_newsiblingPath,\
-	private  field volumeShare_oldCommitment_value,\
-	private field volumeShare_oldCommitment_salt,\
-	private bool volumeShare_oldCommitment_isDummy,\
-	public field commitmentRoot,\
-	private field volumeShare_oldCommitment_membershipWitness_index,\
-	private field[32] volumeShare_oldCommitment_membershipWitness_siblingPath,\
-	private field volumeShare_newCommitment_owner_publicKey,\
-	private field volumeShare_newCommitment_salt,\
-	public field volumeShare_newCommitment_commitment\
-) -> (bool):
+def main(
+    private field volumeShareParam,
+    private field volumeShare_oldCommitment_owner_secretKey,
+    public field nullifierRoot,
+    public field newNullifierRoot,
+    public field volumeShare_oldCommitment_nullifier,
+    private field[32] volumeShare_nullifier_nonmembershipWitness_siblingPath,
+    private field[32] volumeShare_nullifier_nonmembershipWitness_newsiblingPath,
+    private field volumeShare_oldCommitment_value,
+    private field volumeShare_oldCommitment_salt,
+    private bool volumeShare_oldCommitment_isDummy,
+    public field commitmentRoot,
+    private field volumeShare_oldCommitment_membershipWitness_index,
+    private field[32] volumeShare_oldCommitment_membershipWitness_siblingPath,
+    private field volumeShare_newCommitment_owner_publicKey,
+    private field volumeShare_newCommitment_salt,
+    public field volumeShare_newCommitment_commitment
+) -> (bool) {
+    // We need to hard-code each stateVarId into the circuit:
+    field volumeShare_stateVarId_field = 9;
+    
+    // Assign volumeShare from parameter
+    field volumeShare = volumeShareParam;
 
-        
-        // We need to hard-code each stateVarId into the circuit:
-        field volumeShare_stateVarId_field = 9
+    // volumeShare_oldCommitment - PoKoSK:
+    // The correctness of this secret key will be constrained within the oldCommitment existence check.
+    field[2] volumeShare_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(volumeShare_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams());
 
+    bool volumeShare_oldCommitment_owner_publicKey_sign = edwardsCompress(volumeShare_oldCommitment_owner_publicKey_point)[0];
+    bool[254] volumeShare_oldCommitment_yBits = field_to_bool_256(volumeShare_oldCommitment_owner_publicKey_point[1])[2..256];
+    volumeShare_oldCommitment_yBits[0] = volumeShare_oldCommitment_owner_publicKey_sign;
+    field volumeShare_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...volumeShare_oldCommitment_yBits]);
 
-        field volumeShare = volumeShare_oldCommitment_value
+    // Nullify volumeShare:
+    field volumeShare_oldCommitment_nullifier_check_field = poseidon([
+        volumeShare_stateVarId_field,
+        volumeShare_oldCommitment_owner_secretKey,
+        volumeShare_oldCommitment_salt
+    ]);
 
-volumeShare = volumeShareParam
+    assert(
+        field_to_bool_256(volumeShare_oldCommitment_nullifier)[8..256] == field_to_bool_256(volumeShare_oldCommitment_nullifier_check_field)[8..256]
+    );
 
-
-        // volumeShare_oldCommitment - PoKoSK:
-        // The correctness of this secret key will be constrained within the oldCommitment existence check.
-
-        field[2] volumeShare_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(volumeShare_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
-
-        bool volumeShare_oldCommitment_owner_publicKey_sign = edwardsCompress(volumeShare_oldCommitment_owner_publicKey_point)[0]
-
-        bool[254] volumeShare_oldCommitment_yBits = field_to_bool_256(volumeShare_oldCommitment_owner_publicKey_point[1])[2..256]
-        volumeShare_oldCommitment_yBits[0] = volumeShare_oldCommitment_owner_publicKey_sign
-
-        field volumeShare_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...volumeShare_oldCommitment_yBits])
-
-
-        // Nullify volumeShare:
-
-        field volumeShare_oldCommitment_nullifier_check_field = poseidon([\
-          volumeShare_stateVarId_field,\
-          volumeShare_oldCommitment_owner_secretKey,\
-          volumeShare_oldCommitment_salt\
-        ])
-
-        assert(\
-        field_to_bool_256(volumeShare_oldCommitment_nullifier)[8..256] == field_to_bool_256(volumeShare_oldCommitment_nullifier_check_field)[8..256]\
+    // volumeShare_oldCommitment_nullifier : non-existence check
+    assert(
+        nullifierRoot == checkproof(
+            volumeShare_nullifier_nonmembershipWitness_siblingPath,
+            volumeShare_oldCommitment_nullifier
         )
-        // volumeShare_oldCommitment_nullifier : non-existence check
-        
-        assert(\
-          nullifierRoot == checkproof(\
-            volumeShare_nullifier_nonmembershipWitness_siblingPath,\
-            volumeShare_oldCommitment_nullifier\
-           )       )
+    );
 
-       assert(\
-        newNullifierRoot == checkUpdatedPath(\
-          volumeShare_nullifier_nonmembershipWitness_newsiblingPath,\
-          volumeShare_oldCommitment_nullifier\
-        )        )
-
-        
-
-
-
-        // prepare secret state 'volumeShare' for commitment
-
-          field volumeShare_oldCommitment_value_field = volumeShare_oldCommitment_value
-          
-        // volumeShare_oldCommitment_commitment: preimage check
-
-
-        field volumeShare_oldCommitment_commitment_field = poseidon([\
-          volumeShare_stateVarId_field,\
-          volumeShare_oldCommitment_value_field,\
-          volumeShare_oldCommitment_owner_publicKey,\
-          volumeShare_oldCommitment_salt        ])
-
-
-        // volumeShare_oldCommitment_commitment: existence check
-
-
-        field volumeShare_commitmentRoot_check = checkRoot(\
-          volumeShare_oldCommitment_membershipWitness_siblingPath,\
-          volumeShare_oldCommitment_commitment_field,\
-          volumeShare_oldCommitment_membershipWitness_index\
+    assert(
+        newNullifierRoot == checkUpdatedPath(
+            volumeShare_nullifier_nonmembershipWitness_newsiblingPath,
+            volumeShare_oldCommitment_nullifier
         )
+    );
 
+    // Prepare secret state 'volumeShare' for commitment
+    field volumeShare_oldCommitment_value_field = volumeShare_oldCommitment_value;
 
-        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
-        volumeShare_commitmentRoot_check = if volumeShare_oldCommitment_isDummy == true then commitmentRoot else volumeShare_commitmentRoot_check fi
+    // volumeShare_oldCommitment_commitment: preimage check
+    field volumeShare_oldCommitment_commitment_field = poseidon([
+        volumeShare_stateVarId_field,
+        volumeShare_oldCommitment_value_field,
+        volumeShare_oldCommitment_owner_publicKey,
+        volumeShare_oldCommitment_salt
+    ]);
 
+    // volumeShare_oldCommitment_commitment: existence check
+    field volumeShare_commitmentRoot_check = checkRoot(
+        volumeShare_oldCommitment_membershipWitness_siblingPath,
+        volumeShare_oldCommitment_commitment_field,
+        volumeShare_oldCommitment_membershipWitness_index
+    );
 
-        assert(\
-          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(volumeShare_commitmentRoot_check)[8..256]\
-        )
+    // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+    volumeShare_commitmentRoot_check = if volumeShare_oldCommitment_isDummy == true then commitmentRoot else volumeShare_commitmentRoot_check fi;
 
+    assert(
+        field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(volumeShare_commitmentRoot_check)[8..256]
+    );
 
-        // prepare secret state 'volumeShare' for commitment
+    // Prepare secret state 'volumeShare' for commitment
+    field volumeShare_newCommitment_value_field = volumeShare;
 
-        field volumeShare_newCommitment_value_field = volumeShare
+    // volumeShare_newCommitment_commitment - preimage check
+    field volumeShare_newCommitment_commitment_check_field = poseidon([
+        volumeShare_stateVarId_field,
+        volumeShare_newCommitment_value_field,
+        volumeShare_newCommitment_owner_publicKey,
+        volumeShare_newCommitment_salt
+    ]);
 
-        // volumeShare_newCommitment_commitment - preimage check
+    assert(
+        field_to_bool_256(volumeShare_newCommitment_commitment)[8..256] == field_to_bool_256(volumeShare_newCommitment_commitment_check_field)[8..256]
+    );
 
-        field volumeShare_newCommitment_commitment_check_field = poseidon([\
-          volumeShare_stateVarId_field,\
-          volumeShare_newCommitment_value_field,\
-          volumeShare_newCommitment_owner_publicKey,\
-          volumeShare_newCommitment_salt\
-        ])
-
-        assert(\
-          field_to_bool_256(volumeShare_newCommitment_commitment)[8..256] == field_to_bool_256(volumeShare_newCommitment_commitment_check_field)[8..256]\
-        )
-
-         return true
+    return true;
+}

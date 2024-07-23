@@ -1,28 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.0;
 
-interface IERC20 {
-function totalSupply() external view returns (uint256);
-function balanceOf(address account) external view returns (uint256);
-
-function transfer(address recipient, uint256 amount) external returns (bool);
-
-function allowance(
-address owner,
-address spender
-) external view returns (uint256);
-
-function approve(address spender, uint256 amount) external returns (bool);
-
-function transferFrom(
-address sender,
-address recipient,
-uint256 amount
-) external returns (bool);
-
-event Transfer(address indexed from, address indexed to, uint256 amount);
-event Approval(address indexed owner, address indexed spender, uint256 amount);
-}
+import "./ierc20.sol";
 
 contract ZKSender {
 IERC20 public immutable token;
@@ -35,34 +14,31 @@ token = IERC20(_token);
 }
 
 // This function hides the tokens and makes them only accessible via ZKP
-function vault(uint256 _amountIn) external returns (bool) {
+function vault(uint256 amountIn) public {
 // First, transfer the funds from the user to this contract (lock funds)
-require(_amountIn > 0, "Amount must be greater than 0");
+require(amountIn > 0, "Amount must be greater than 0");
 require(
-token.transferFrom(msg.sender, address(this), _amountIn),
+token.transferFrom(msg.sender, address(this), amountIn),
 "Transfer failed"
 );
 
 // Then, update the balance of the user in the ZKP way
-balances[msg.sender] += _amountIn;
-
-reserve += _amountIn;
-
-// We could apply some fees here.
-// Alternatively, they could be applied on withdrawal
-// emit something? Emit a commitment change?
-
-return true;
+balances[msg.sender] += amountIn;
+reserve += amountIn;
 }
 
-function unVault(uint256 _amountOut) external returns (bool){
-require(balances[msg.sender] >= _amountOut, "Unsufficient funds");
-require(reserve >= _amountOut, "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!");
-require(token.transfer(msg.sender, _amountOut), "Transfer failed");
+function send(address recipient, uint256 amount) public {
+// Deduct the amount from the sender's balance
+balances[msg.sender] -= amount;
+// Add the amount to the recipient's balance
+balances[recipient] += amount;
+}
 
-balances[msg.sender] -= _amountOut;
-reserve -= _amountOut;
+function unVault(uint256 amountOut) external{
+require(reserve >= amountOut, "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!");
+require(token.transfer(msg.sender, amountOut), "Transfer failed");
 
-return true;
+balances[msg.sender] -= amountOut;
+reserve -= amountOut;
 }
 }
