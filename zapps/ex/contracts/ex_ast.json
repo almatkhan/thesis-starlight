@@ -554,6 +554,25 @@
                                     },
                                     {
                                         "nodeType": "ExpressionStatement",
+                                        "expression": {}
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "Assignment",
+                                            "operator": "-=",
+                                            "leftHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "reserve"
+                                            },
+                                            "rightHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "amountOut"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
                                         "expression": {
                                             "nodeType": "FunctionCall",
                                             "expression": {
@@ -587,25 +606,6 @@
                                                     "kind": "string"
                                                 }
                                             ]
-                                        }
-                                    },
-                                    {
-                                        "nodeType": "ExpressionStatement",
-                                        "expression": {}
-                                    },
-                                    {
-                                        "nodeType": "ExpressionStatement",
-                                        "expression": {
-                                            "nodeType": "Assignment",
-                                            "operator": "-=",
-                                            "leftHandSide": {
-                                                "nodeType": "Identifier",
-                                                "name": "reserve"
-                                            },
-                                            "rightHandSide": {
-                                                "nodeType": "Identifier",
-                                                "name": "amountOut"
-                                            }
                                         }
                                     }
                                 ],

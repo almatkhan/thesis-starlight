@@ -1548,13 +1548,6 @@
                                 "isAccessed": false
                             },
                             {
-                                "nodeType": "ExpressionStatement",
-                                "expression": {},
-                                "isVarDec": false,
-                                "id": 103,
-                                "isAccessed": false
-                            },
-                            {
                                 "nodeType": "BoilerplateStatement",
                                 "bpSection": "statements",
                                 "bpType": "decrementation",
@@ -1605,6 +1598,13 @@
                                         }
                                     }
                                 },
+                                "isVarDec": false,
+                                "id": 104,
+                                "isAccessed": false
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "expression": {},
                                 "isVarDec": false,
                                 "id": 114,
                                 "isAccessed": false

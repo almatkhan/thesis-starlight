@@ -258,9 +258,9 @@ updatedInputs.customInputs[1] = 1;
             // this seems silly (it is) but its the only way to get the event to emit properly
             emit EncryptedBackupData(BackupData);
 require(reserve >= amountOut, "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!");
-require(token.transfer(msg.sender, amountOut), "Transfer failed");
 
 reserve -= amountOut;
+require(token.transfer(msg.sender, amountOut), "Transfer failed");
         
       }
 }

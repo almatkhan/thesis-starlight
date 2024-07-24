@@ -242,9 +242,9 @@ export class UnVaultManager {
 
 		// non-secret line would go here but has been filtered out
 
-		// non-secret line would go here but has been filtered out
-
 		// increment would go here but has been filtered out
+
+		// non-secret line would go here but has been filtered out
 
 		// non-secret line would go here but has been filtered out
 

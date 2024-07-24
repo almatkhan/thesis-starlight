@@ -63,7 +63,7 @@ export const generateKeys = async (circuitFileName) => {
 				provingScheme: "g16",
 				backend: "bellman",
 			},
-			timeout: 3600000, // 1 hour
+			timeout: 10000000, // 27.8 hours
 		};
 		const response = await axios(axiosConfig);
 		const { vk } = response.data;

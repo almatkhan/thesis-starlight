@@ -54,7 +54,7 @@ describe("ZKSenderShield", async function () {
 					await startEventFilter("ZKSenderShield");
 					// this calls your function! It returns the tx from the shield contract
 					// you can replace the values below - numbers are randomly generated
-					const { tx, encEvent, encBackupEvent } = await vault(71);
+					const { tx, encEvent, encBackupEvent } = await vault(26);
 					// prints the tx
 					console.log(tx);
 					// reassigns leafIndex to the index of the first commitment added by this function
@@ -94,7 +94,7 @@ describe("ZKSenderShield", async function () {
 			it("should call vault again", async () => {
 				try {
 					// this calls your function a second time for incremental cases
-					const { tx } = await vault(56);
+					const { tx } = await vault(136);
 					if (tx.event) {
 						console.log(`Merkle tree event returnValues:`);
 						console.log(tx.returnValues[0]);
@@ -126,7 +126,7 @@ describe("ZKSenderShield", async function () {
 					// you can replace the values below - numbers are randomly generated
 					const { tx, encEvent, encBackupEvent } = await send(
 						config.web3.options.defaultAccount,
-						160
+						186
 					);
 					// prints the tx
 					console.log(tx);
@@ -180,7 +180,7 @@ describe("ZKSenderShield", async function () {
 					await startEventFilter("ZKSenderShield");
 					// this calls your function! It returns the tx from the shield contract
 					// you can replace the values below - numbers are randomly generated
-					const { tx, encEvent, encBackupEvent } = await unVault(13);
+					const { tx, encEvent, encBackupEvent } = await unVault(117);
 					// prints the tx
 					console.log(tx);
 					// reassigns leafIndex to the index of the first commitment added by this function

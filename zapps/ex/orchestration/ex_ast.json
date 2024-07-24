@@ -1242,21 +1242,7 @@
                             },
                             {
                                 "nodeType": "ExpressionStatement",
-                                "id": 103,
-                                "expression": {
-                                    "nodeType": "RequireStatement",
-                                    "condition": [],
-                                    "message": [
-                                        {
-                                            "nodeType": "Literal",
-                                            "value": "Transfer failed"
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "nodeType": "ExpressionStatement",
-                                "id": 110,
+                                "id": 100,
                                 "expression": {
                                     "nodeType": "Assignment",
                                     "operator": "-=",
@@ -1279,7 +1265,7 @@
                             },
                             {
                                 "nodeType": "ExpressionStatement",
-                                "id": 114,
+                                "id": 104,
                                 "expression": {
                                     "nodeType": "Assignment",
                                     "operator": "=",
@@ -1302,6 +1288,20 @@
                                             "subType": "uint256"
                                         }
                                     }
+                                }
+                            },
+                            {
+                                "nodeType": "ExpressionStatement",
+                                "id": 114,
+                                "expression": {
+                                    "nodeType": "RequireStatement",
+                                    "condition": [],
+                                    "message": [
+                                        {
+                                            "nodeType": "Literal",
+                                            "value": "Transfer failed"
+                                        }
+                                    ]
                                 }
                             }
                         ],

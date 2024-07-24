@@ -34,11 +34,16 @@ balances[msg.sender] -= amount;
 balances[recipient] += amount;
 }
 
+// This function allows the user to withdraw the funds from the vault
+// Important, this function should not be vulnerable to reentrancy attacks.
+// - However, this is not tested against reentrancy attacks.
+// NOTICE: This function UNHIDES the tokens and makes anyone able to see them
 function unVault(uint256 amountOut) external{
 require(reserve >= amountOut, "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!");
-require(token.transfer(msg.sender, amountOut), "Transfer failed");
 
 balances[msg.sender] -= amountOut;
 reserve -= amountOut;
+
+require(token.transfer(msg.sender, amountOut), "Transfer failed");
 }
 }

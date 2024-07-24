@@ -48,11 +48,11 @@ def main(\
 
 
 
-
-
 // Moved decrementation of balances_msg
 
 reserve = reserve - amountOut
+
+
 
 
         field balances_msgSender_0_stateVarId_field = mimc2([balances_mappingId, msgSender])
