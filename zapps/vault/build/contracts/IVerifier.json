@@ -1,0 +1,262 @@
+{
+  "contractName": "IVerifier",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_inputs",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_vk",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "verify",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "result",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"_proof\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_inputs\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"_vk\",\"type\":\"uint256[]\"}],\"name\":\"verify\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"result\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/verify/IVerifier.sol\":\"IVerifier\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/verify/IVerifier.sol\":{\"keccak256\":\"0x41fa386fcd33fee8f89b944cfb5ef63718a80e2447e032b0b3cfd5bc2c60b006\",\"license\":\"CC0-1\",\"urls\":[\"bzz-raw://00f503755aa1009b243dfbdf4f114c40856b31c25d7a4362c1e3e3fbe1c2d458\",\"dweb:/ipfs/QmWiz8G4kjp1nVVT7XY8dYoXKurEAUr5EUwXKY1ZXEQ2jN\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: CC0-1\n\n/**\nCREDITS:\n\nStandardisation effort:\n\nInterface proposal & example implementation by Michael Connor, EY, 2019,\nincluding:\nFunctions, arrangement, logic, inheritance structure, and interactions with a proposed Verifier Registry interface.\n\nWith thanks to:\nDuncan Westland\nChaitanya Konda\nHarry R\n*/\n\n/**\n@title Verifier_Interface\n@dev Example Verifier Implementation\n@notice Do not use this example in any production code!\n*/\n\npragma solidity ^0.8.0;\n\ninterface IVerifier {\n\n  function verify(uint256[] calldata _proof, uint256[] calldata _inputs, uint256[] calldata _vk) external returns (bool result);\n\n}\n",
+  "sourcePath": "/Users/kaiser/ucl/T3/thesis-starlight/zapps/vault/contracts/verify/IVerifier.sol",
+  "ast": {
+    "absolutePath": "project:/contracts/verify/IVerifier.sol",
+    "exportedSymbols": {
+      "IVerifier": [
+        2310
+      ]
+    },
+    "id": 2311,
+    "license": "CC0-1",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2295,
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "462:23:6"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 2310,
+        "linearizedBaseContracts": [
+          2310
+        ],
+        "name": "IVerifier",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "functionSelector": "87d9d023",
+            "id": 2309,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "verify",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2305,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2298,
+                  "mutability": "mutable",
+                  "name": "_proof",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2309,
+                  "src": "528:25:6",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_calldata_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 2296,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "528:7:6",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 2297,
+                    "nodeType": "ArrayTypeName",
+                    "src": "528:9:6",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2301,
+                  "mutability": "mutable",
+                  "name": "_inputs",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2309,
+                  "src": "555:26:6",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_calldata_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 2299,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "555:7:6",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 2300,
+                    "nodeType": "ArrayTypeName",
+                    "src": "555:9:6",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2304,
+                  "mutability": "mutable",
+                  "name": "_vk",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2309,
+                  "src": "583:22:6",
+                  "stateVariable": false,
+                  "storageLocation": "calldata",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_calldata_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 2302,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "583:7:6",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 2303,
+                    "nodeType": "ArrayTypeName",
+                    "src": "583:9:6",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "527:79:6"
+            },
+            "returnParameters": {
+              "id": 2308,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2307,
+                  "mutability": "mutable",
+                  "name": "result",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2309,
+                  "src": "625:11:6",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 2306,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "625:4:6",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "624:13:6"
+            },
+            "scope": 2310,
+            "src": "512:126:6",
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 2311,
+        "src": "487:154:6"
+      }
+    ],
+    "src": "462:180:6"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.16",
+  "updatedAt": "2024-08-04T20:15:33.359Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

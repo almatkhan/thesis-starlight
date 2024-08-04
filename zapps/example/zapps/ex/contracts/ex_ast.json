@@ -1,0 +1,682 @@
+{
+    "nodeType": "Folder",
+    "files": [
+        {
+            "nodeType": "SourceUnit",
+            "name": "ZKSender",
+            "license": "MIT",
+            "nodes": [
+                {
+                    "nodeType": "PragmaDirective",
+                    "literals": [
+                        "solidity",
+                        "^",
+                        "0.8",
+                        ".0"
+                    ]
+                },
+                {
+                    "nodeType": "ContractBoilerplate",
+                    "bpSection": "importStatements",
+                    "bpCategory": "contract",
+                    "newCommitmentsRequired": true
+                },
+                {
+                    "nodeType": "ImportDirective",
+                    "file": "./ierc20.sol"
+                },
+                {
+                    "nodeType": "ContractDefinition",
+                    "name": "ZKSender",
+                    "baseContracts": [
+                        {
+                            "nodeType": "InheritanceSpecifier",
+                            "baseName": {
+                                "name": "MerkleTree"
+                            }
+                        }
+                    ],
+                    "nodes": [
+                        {
+                            "nodeType": "ContractBoilerplate",
+                            "bpSection": "stateVariableDeclarations",
+                            "bpCategory": "contract",
+                            "functionNames": [
+                                "vault",
+                                "send",
+                                "unVault",
+                                "joinCommitments",
+                                "splitCommitments"
+                            ],
+                            "nullifiersRequired": true,
+                            "oldCommitmentAccessRequired": true,
+                            "newCommitmentsRequired": true
+                        },
+                        {
+                            "nodeType": "ContractBoilerplate",
+                            "bpSection": "registerZKPPublicKey",
+                            "bpCategory": "contract"
+                        },
+                        {
+                            "nodeType": "ContractBoilerplate",
+                            "bpSection": "verify",
+                            "bpCategory": "contract",
+                            "nullifiersRequired": true,
+                            "oldCommitmentAccessRequired": true,
+                            "newCommitmentsRequired": true,
+                            "constructorContainsSecret": true,
+                            "circuitParams": {
+                                "vault": {
+                                    "parameters": [
+                                        "amountIn",
+                                        "newCommitment"
+                                    ]
+                                },
+                                "send": {
+                                    "parameters": [
+                                        "nullifierRoot",
+                                        "newNullifierRoot",
+                                        "nullifier",
+                                        "nullifier",
+                                        "oldCommitmentExistence",
+                                        "newCommitment",
+                                        "newCommitment"
+                                    ]
+                                },
+                                "unVault": {
+                                    "parameters": [
+                                        "amountOut",
+                                        "nullifierRoot",
+                                        "newNullifierRoot",
+                                        "nullifier",
+                                        "nullifier",
+                                        "oldCommitmentExistence",
+                                        "newCommitment"
+                                    ]
+                                }
+                            },
+                            "isjoinSplitCommitmentsFunction": [
+                                "true"
+                            ]
+                        },
+                        {
+                            "nodeType": "VariableDeclaration",
+                            "name": "token",
+                            "visibility": "public",
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                                "typeString": "contract IERC20"
+                            },
+                            "typeName": {
+                                "nodeType": "ElementaryTypeName",
+                                "typeDescriptions": {
+                                    "typeString": "contract IERC20"
+                                }
+                            },
+                            "declarationType": "state"
+                        },
+                        {
+                            "nodeType": "VariableDeclaration",
+                            "name": "reserve",
+                            "visibility": "public",
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                                "typeString": "uint256"
+                            },
+                            "typeName": {
+                                "nodeType": "ElementaryTypeName",
+                                "typeDescriptions": {
+                                    "typeString": "uint256"
+                                }
+                            },
+                            "declarationType": "state"
+                        },
+                        {
+                            "nodeType": "VariableDeclaration",
+                            "name": "balances",
+                            "visibility": "internal",
+                            "storageLocation": "default",
+                            "typeDescriptions": {
+                                "typeString": "mapping(address => uint256)"
+                            },
+                            "typeName": {
+                                "nodeType": "Mapping",
+                                "keyType": {
+                                    "nodeType": "ElementaryTypeName",
+                                    "typeDescriptions": {
+                                        "typeString": "address"
+                                    }
+                                },
+                                "valueType": {
+                                    "nodeType": "ElementaryTypeName",
+                                    "typeDescriptions": {
+                                        "typeString": "uint256"
+                                    }
+                                },
+                                "typeDescriptions": {}
+                            },
+                            "isSecret": true,
+                            "interactsWithSecret": true,
+                            "declarationType": "state"
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "",
+                            "visibility": "",
+                            "isConstructor": true,
+                            "kind": "constructor",
+                            "stateMutability": "",
+                            "msgSigRequired": false,
+                            "body": {
+                                "nodeType": "Block",
+                                "preStatements": [
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "preStatements",
+                                        "bpCategory": "cnstrctr"
+                                    }
+                                ],
+                                "statements": [
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "Assignment",
+                                            "operator": "=",
+                                            "leftHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "token"
+                                            },
+                                            "rightHandSide": {
+                                                "nodeType": "TypeConversion",
+                                                "type": "contract IERC20",
+                                                "arguments": {
+                                                    "nodeType": "Identifier",
+                                                    "name": "_token"
+                                                },
+                                                "expression": {
+                                                    "nodeType": "Identifier",
+                                                    "name": "IERC20"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "postStatements": []
+                            },
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "_token",
+                                        "visibility": "internal",
+                                        "storageLocation": "default",
+                                        "typeDescriptions": {
+                                            "typeString": "address"
+                                        },
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "typeDescriptions": {
+                                                "typeString": "address"
+                                            }
+                                        },
+                                        "declarationType": "parameter"
+                                    },
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "parameters",
+                                        "bpCategory": "cnstrctr"
+                                    }
+                                ]
+                            },
+                            "returnParameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": []
+                            }
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "vault",
+                            "visibility": "public",
+                            "isConstructor": false,
+                            "kind": "function",
+                            "stateMutability": "",
+                            "msgSigRequired": false,
+                            "body": {
+                                "nodeType": "Block",
+                                "preStatements": [],
+                                "statements": [
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "FunctionCall",
+                                            "expression": {
+                                                "nodeType": "Identifier",
+                                                "name": "require"
+                                            },
+                                            "arguments": [
+                                                {
+                                                    "nodeType": "BinaryOperation",
+                                                    "leftExpression": {
+                                                        "nodeType": "Identifier",
+                                                        "name": "amountIn"
+                                                    },
+                                                    "operator": ">",
+                                                    "rightExpression": {
+                                                        "nodeType": "Literal",
+                                                        "value": "0",
+                                                        "kind": "number"
+                                                    }
+                                                },
+                                                {
+                                                    "nodeType": "Literal",
+                                                    "value": "Amount must be greater than 0",
+                                                    "kind": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "FunctionCall",
+                                            "expression": {
+                                                "nodeType": "Identifier",
+                                                "name": "require"
+                                            },
+                                            "arguments": [
+                                                {
+                                                    "nodeType": "FunctionCall",
+                                                    "expression": {
+                                                        "nodeType": "MemberAccess",
+                                                        "memberName": "transferFrom",
+                                                        "expression": {
+                                                            "nodeType": "Identifier",
+                                                            "name": "token"
+                                                        }
+                                                    },
+                                                    "arguments": [
+                                                        {
+                                                            "nodeType": "MsgSender"
+                                                        },
+                                                        {
+                                                            "nodeType": "TypeConversion",
+                                                            "type": "address",
+                                                            "arguments": {
+                                                                "nodeType": "Identifier",
+                                                                "name": "this"
+                                                            },
+                                                            "expression": {
+                                                                "nodeType": "ElementaryTypeNameExpression",
+                                                                "typeName": {
+                                                                    "nodeType": "ElementaryTypeName",
+                                                                    "typeDescriptions": {
+                                                                        "typeString": "address"
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "nodeType": "Identifier",
+                                                            "name": "amountIn"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "nodeType": "Literal",
+                                                    "value": "Transfer failed",
+                                                    "kind": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {}
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "Assignment",
+                                            "operator": "+=",
+                                            "leftHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "reserve"
+                                            },
+                                            "rightHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "amountIn"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "postStatements": [
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "postStatements",
+                                        "bpCategory": "customFunction",
+                                        "customInputs": [
+                                            {
+                                                "name": "amountIn",
+                                                "type": "uint256",
+                                                "isParam": true,
+                                                "isConstantArray": false,
+                                                "inCircuit": true
+                                            },
+                                            {
+                                                "name": 1,
+                                                "type": "uint256",
+                                                "dummy": true,
+                                                "inCircuit": true
+                                            }
+                                        ],
+                                        "functionName": "vault",
+                                        "nullifiersRequired": false,
+                                        "oldCommitmentAccessRequired": false,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "amountIn",
+                                        "visibility": "internal",
+                                        "storageLocation": "default",
+                                        "typeDescriptions": {
+                                            "typeString": "uint256"
+                                        },
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "typeDescriptions": {
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter"
+                                    },
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "parameters",
+                                        "bpCategory": "customFunction",
+                                        "nullifiersRequired": false,
+                                        "oldCommitmentAccessRequired": false,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "returnParameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": []
+                            }
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "send",
+                            "visibility": "public",
+                            "isConstructor": false,
+                            "kind": "function",
+                            "stateMutability": "",
+                            "msgSigRequired": false,
+                            "body": {
+                                "nodeType": "Block",
+                                "preStatements": [],
+                                "statements": [
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {}
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {}
+                                    }
+                                ],
+                                "postStatements": [
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "postStatements",
+                                        "bpCategory": "customFunction",
+                                        "customInputs": [
+                                            {
+                                                "name": 1,
+                                                "type": "uint256",
+                                                "dummy": true,
+                                                "inCircuit": true
+                                            }
+                                        ],
+                                        "functionName": "send",
+                                        "nullifiersRequired": true,
+                                        "oldCommitmentAccessRequired": true,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "recipient",
+                                        "visibility": "internal",
+                                        "storageLocation": "default",
+                                        "typeDescriptions": {
+                                            "typeString": "address"
+                                        },
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "typeDescriptions": {
+                                                "typeString": "address"
+                                            }
+                                        },
+                                        "isSecret": true,
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter"
+                                    },
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "amount",
+                                        "visibility": "internal",
+                                        "storageLocation": "default",
+                                        "typeDescriptions": {
+                                            "typeString": "uint256"
+                                        },
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "typeDescriptions": {
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "isSecret": true,
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter"
+                                    },
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "parameters",
+                                        "bpCategory": "customFunction",
+                                        "nullifiersRequired": true,
+                                        "oldCommitmentAccessRequired": true,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "returnParameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": []
+                            }
+                        },
+                        {
+                            "nodeType": "FunctionDefinition",
+                            "name": "unVault",
+                            "visibility": "public",
+                            "isConstructor": false,
+                            "kind": "function",
+                            "stateMutability": "",
+                            "msgSigRequired": false,
+                            "body": {
+                                "nodeType": "Block",
+                                "preStatements": [],
+                                "statements": [
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "FunctionCall",
+                                            "expression": {
+                                                "nodeType": "Identifier",
+                                                "name": "require"
+                                            },
+                                            "arguments": [
+                                                {
+                                                    "nodeType": "BinaryOperation",
+                                                    "leftExpression": {
+                                                        "nodeType": "Identifier",
+                                                        "name": "reserve"
+                                                    },
+                                                    "operator": ">=",
+                                                    "rightExpression": {
+                                                        "nodeType": "Identifier",
+                                                        "name": "amountOut"
+                                                    }
+                                                },
+                                                {
+                                                    "nodeType": "Literal",
+                                                    "value": "WTF, IT SHOULD NEVER HAPPEN! WE'VE BEEN HACKED!",
+                                                    "kind": "string"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {}
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "Assignment",
+                                            "operator": "-=",
+                                            "leftHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "reserve"
+                                            },
+                                            "rightHandSide": {
+                                                "nodeType": "Identifier",
+                                                "name": "amountOut"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "nodeType": "ExpressionStatement",
+                                        "expression": {
+                                            "nodeType": "FunctionCall",
+                                            "expression": {
+                                                "nodeType": "Identifier",
+                                                "name": "require"
+                                            },
+                                            "arguments": [
+                                                {
+                                                    "nodeType": "FunctionCall",
+                                                    "expression": {
+                                                        "nodeType": "MemberAccess",
+                                                        "memberName": "transfer",
+                                                        "expression": {
+                                                            "nodeType": "Identifier",
+                                                            "name": "token"
+                                                        }
+                                                    },
+                                                    "arguments": [
+                                                        {
+                                                            "nodeType": "MsgSender"
+                                                        },
+                                                        {
+                                                            "nodeType": "Identifier",
+                                                            "name": "amountOut"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "nodeType": "Literal",
+                                                    "value": "Transfer failed",
+                                                    "kind": "string"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "postStatements": [
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "postStatements",
+                                        "bpCategory": "customFunction",
+                                        "customInputs": [
+                                            {
+                                                "name": "amountOut",
+                                                "type": "uint256",
+                                                "isParam": true,
+                                                "isConstantArray": false,
+                                                "inCircuit": true
+                                            },
+                                            {
+                                                "name": 1,
+                                                "type": "uint256",
+                                                "dummy": true,
+                                                "inCircuit": true
+                                            }
+                                        ],
+                                        "functionName": "unVault",
+                                        "nullifiersRequired": true,
+                                        "oldCommitmentAccessRequired": true,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "parameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": [
+                                    {
+                                        "nodeType": "VariableDeclaration",
+                                        "name": "amountOut",
+                                        "visibility": "internal",
+                                        "storageLocation": "default",
+                                        "typeDescriptions": {
+                                            "typeString": "uint256"
+                                        },
+                                        "typeName": {
+                                            "nodeType": "ElementaryTypeName",
+                                            "typeDescriptions": {
+                                                "typeString": "uint256"
+                                            }
+                                        },
+                                        "interactsWithSecret": true,
+                                        "declarationType": "parameter"
+                                    },
+                                    {
+                                        "nodeType": "FunctionBoilerplate",
+                                        "bpSection": "parameters",
+                                        "bpCategory": "customFunction",
+                                        "nullifiersRequired": true,
+                                        "oldCommitmentAccessRequired": true,
+                                        "newCommitmentsRequired": true,
+                                        "isConstructor": false
+                                    }
+                                ]
+                            },
+                            "returnParameters": {
+                                "nodeType": "ParameterList",
+                                "parameters": []
+                            }
+                        }
+                    ],
+                    "isShieldContract": true
+                }
+            ]
+        }
+    ]
+}

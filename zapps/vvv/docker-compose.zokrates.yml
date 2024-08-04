@@ -1,0 +1,20 @@
+version: '3.5'
+
+services:
+  zokrates:
+    build:
+      context: .
+      dockerfile: Dockerfile.zokrates
+    volumes:
+      - ./circuits/:/app/circuits:delegated
+      - ./proving-files/:/app/output:delegated
+    environment:
+      PROVING_SCHEME: 'g16'
+    ports:
+      - '8080:80'
+    networks:
+      - zapp_network
+
+networks:
+  zapp_network:
+    name: zapp_network

@@ -58,6 +58,7 @@ export const generateKeys = async (circuitFileName) => {
 				"Content-Type": "application/json",
 			},
 			data: {
+				// codePath: "/app/circuits",
 				filepath,
 				curve: "bn128",
 				provingScheme: "g16",
@@ -65,7 +66,13 @@ export const generateKeys = async (circuitFileName) => {
 			},
 			timeout: 3600000, // 1 hour
 		};
+
+		console.log('\n>>>>>>CONFIG<<<<<<\n', axiosConfig,'\n===================\n');
+		
 		const response = await axios(axiosConfig);
+
+		console.log('\n>>>>>>RESPONSE.data<<<<<<\n', response.data,'\n===================\n');
+
 		const { vk } = response.data;
 		delete vk.raw;
 		logger.info(

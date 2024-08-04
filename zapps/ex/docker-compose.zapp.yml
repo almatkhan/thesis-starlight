@@ -53,10 +53,10 @@ services:
       - zapp_network
 
   zokrates:
-    # image: ghcr.io/eyblockchain/zokrates-worker-updated:latest
+    image: 0c2c584c31e819244207d19f8d6b90162c94aa6c2fd0243eeaca26b3c20329f8
     # the following image is for arm64 architecture. Uncomment the following lines and comment the above line if you are using ARM
-    image: ghcr.io/eyblockchain/zokrates-worker-starlight:v0.2
-    platform: linux/arm64/v8
+    # image: ghcr.io/eyblockchain/zokrates-worker-starlight:v0.2
+    # platform: linux/arm64/v8
     volumes:
       - ./circuits/:/app/circuits:delegated
       - ./proving-files/:/app/output:delegated
@@ -68,6 +68,11 @@ services:
       - '8080:80'
     networks:
       - zapp_network
+    # environment:
+      # RABBITMQ_HOST: amqp://rabbitmq
+      # RABBITMQ_PORT: 5672
+      # ENABLE_QUEUE: 'true'
+    command: ./start-dev
 
   timber:
     build: 
