@@ -31,7 +31,6 @@ module.exports = (deployer) => {
 	deployer.then(async () => {
 		// Deploy the ERC20 token
 		const tokenInstance = await deployer.deploy(Token, "ZKToken", "ZKT");
-		
 
 		await deployer.deploy(Pairing);
 		await deployer.link(Pairing, Verifier);
